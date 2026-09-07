@@ -1,0 +1,155 @@
+==============================================================================
+ZURUNY — IMAGE MANIFEST
+What every file is, and what it is good for.
+==============================================================================
+
+All product photography is dark, studio-lit still life on black or oxblood
+grounds. Dimensions are given because aspect ratio decides where a shot can
+be used without cropping through the middle of the object.
+
+
+==============================================================================
+BRAND ASSETS  —  images/brand/
+==============================================================================
+
+emblem.png              1272 x 1264
+  The quatrefoil mark with the olive tree inside, as a white silhouette on
+  transparency. Intended to be used as a CSS mask painted with currentColor,
+  so it can be any brand colour at any size. This is the real mark lifted
+  from the brand deck, not a redrawing.
+
+emblem-mark.png         1272 x 1264
+  The same mark pre-filled in oxblood (#51110F). Use where a plain <img> is
+  needed and tinting is not possible.
+
+logo-lockup.png         1272 x 1584
+  Emblem above the ZURUNY wordmark. The full logo. Same white-on-transparent
+  treatment, so tint it.
+
+pattern-sprig.png       265 x 154
+  Small repeating leaf sprig from the deck. TILES SEAMLESSLY — verified.
+  Good as a whole-page texture at very low opacity (~4%). At full strength
+  it is far too busy.
+
+pattern-damask.png      1052 x 665
+  Large damask scroll from the deck. Rich and handsome, but the repeat is
+  not clean enough for an endless background. Use it inside one contained
+  block — a dark footer panel, a single band — not as page wallpaper.
+
+
+==============================================================================
+PRODUCT PHOTOGRAPHY  —  images/products/
+==============================================================================
+
+NAJIBE — olive oil (currently has NO price set)
+
+  najibe-4.png        1114 x 1412   portrait
+    Two Najibe tins on black. The best Najibe shot. Use as the main image.
+  najibe-2.png        1537 x 1023   landscape
+    Single 1L Najibe tin, wider crop. Good for a horizontal slot.
+  najibe-1.jpg         745 x  ?     portrait
+    A vintage Lebanese postage stamp. Editorial, atmospheric — NOT the
+    product. Do not use it as a product photo.
+  najibe-3.png        1366 x  768
+    NOT A PHOTOGRAPH. This is the founder's written memory set as an image.
+    The text is already transcribed in PRODUCTS.txt — render it as real
+    text. Do not display this file.
+
+MALVINA — olive oil (currently has NO price set)
+
+  malvina-2.png       1086 x 1448   portrait
+    Malvina tins grouped on black. Best Malvina shot, use as the main image.
+  malvina-1.png       1023 x 1538   portrait
+    Malvina tin styled with a tantour and a vintage family photograph.
+    Warmer and more editorial. Lovely for a story section.
+  malvina-3.png       1366 x  768
+    NOT A PHOTOGRAPH — memory text as an image. See PRODUCTS.txt.
+
+EM RAMIZ — olive oil ($10.00, currently out of stock)
+
+  em-ramiz-1.png      1402 x 1122   landscape
+    Three Em Ramiz tins on a deep red ground. Striking, the most "campaign"
+    image in the set.
+  em-ramiz-2.png      1366 x  768
+    NOT A PHOTOGRAPH — memory text as an image. See PRODUCTS.txt.
+
+GEORGES — carob molasses ($15.00, out of stock)
+
+  georges-br-carob-molasses-1.png   1366 x 768
+    NOT A PHOTOGRAPH — memory text as an image.
+  >>> GEORGES HAS NO PRODUCT PHOTOGRAPH AT ALL. <<<
+
+FAYEZ — grape molasses ($10.00, in stock)
+
+  fayez-for-caroub-molasse-1.png    1366 x 768
+    NOT A PHOTOGRAPH — memory text as an image.
+  >>> FAYEZ HAS NO PRODUCT PHOTOGRAPH AT ALL. <<<
+
+TETA NAZIRA — olive oil (no price, not yet produced)
+
+  nazira-1.jpg        1264 x 1264
+    A generated "Coming soon" graphic. Filler, not brand photography.
+    Recommend not using it.
+
+MIMI — olive oil (no price, not yet produced)
+
+  mimi-olive-oil-1.jpg   1264 x 1264
+    The same "Coming soon" filler graphic. Recommend not using it.
+
+BRI' ZEIT — ceramic carafe ($65.00, in stock)
+
+  bri2-zeit-1.png     1537 x 1023   landscape
+    The carafe on a wooden slab against black. Clean product shot, crops
+    well into wide slots.
+  bri2-zeit-3.png     1021 x 1541   portrait
+    Oil being poured from the carafe into a coupe glass, on oxblood. The
+    most alive image in the whole set — a hand, movement, the actual oil.
+    Strong candidate for a hero.
+  bri2-zeit-2.png     1023 x 1537   portrait
+    The carafe with grapes and lace, warm golden light. Painterly.
+
+TANTOUR — ceramic carafe ($75.00, in stock)
+
+  tantour-1.png       1531 x 1027   landscape
+    A row of tantour carafes in different glazes. Good wide shot.
+  tantour-2.png       1402 x 1122   landscape
+    Tantour with fruit and lace, warm light. Crops well.
+  tantour-3.png       1023 x 1537   portrait
+    Single tantour, tall composition.
+
+COASTER — Lebanese cedar ($10.00, in stock)
+
+  costers-1.png        943 x 1668   portrait, very tall
+    The quatrefoil coaster carved from cedar, on near-black. Beautiful, and
+    it ties the physical product to the logo. Note the extreme aspect ratio
+    — it needs a tall slot or it will crop badly.
+
+
+==============================================================================
+FILM  —  film/
+==============================================================================
+
+em-ramiz.mp4            2.2 MB, 1280x720, 8 seconds, has audio
+em-ramiz.webm           1.7 MB, same film, better compression
+em-ramiz-poster.jpg     first frame, for the poster attribute
+
+  A slow push-in from three Em Ramiz tins to a tight shot of the gold
+  emblem. It has a real arc and it ends on the mark.
+
+  If you loop it, dip to black across the seam — cutting straight from the
+  tight logo back to the wide shot snaps hard. Serve both files, mute it for
+  autoplay, and pause it when it scrolls out of view.
+
+
+==============================================================================
+SUMMARY OF GAPS
+==============================================================================
+
+  5 of the 20 image files are memory text, not photography.
+  2 are generated "Coming soon" filler.
+  That leaves 13 real photographs across 10 products.
+
+  Georges and Fayez — both molasses — have NO photography whatsoever.
+  Teta Nazira and Mimi have none either, but they are not in production yet.
+
+  If the client can shoot anything, the two molasses jars are the priority.

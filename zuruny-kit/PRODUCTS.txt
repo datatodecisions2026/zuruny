@@ -1,0 +1,283 @@
+==============================================================================
+ZURUNY — PRODUCT CATALOGUE
+==============================================================================
+
+10 products. Prices in USD. "draft" products are not shown on the site.
+Stock numbers are placeholders from the old system — re-check them.
+
+------------------------------------------------------------------------------
+GEORGES   [active]
+------------------------------------------------------------------------------
+Kind        : Carob molasses
+URL handle  : georges-br-carob-molasses
+Named after someone from: Beirut
+
+SIZES / PRICES
+  (one size)  $15.00        stock 0   (marked unavailable)
+
+DESCRIPTION (shown on the product page)
+Crafted from carefully selected carob pods, our Carob Molasses is a
+traditional Mediterranean syrup with a rich, naturally sweet flavor and a
+smooth texture. Made without added sugar, preservatives, or artificial
+ingredients.
+
+THE STORY — why it carries this name
+(the founder’s own words; this is the heart of the brand)
+I never had the chance to know him, yet he has always been a part of my
+life. When I was younger, every summer we would visit his grave and pray.
+It's strange to pray and speak to someone you never knew — you have never
+heard the sound of his voice, his laugh, or even known his smell. Yet
+somehow we know him through the endless stories my grandmother tells,
+through the pictures I would find during family visits. \"Here's your
+jeddo.\" He is mine without ever truly being mine. Whenever I am asked, \"If
+you could interview one person, dead or alive, who would it be?\", my answer
+is always the same: him.
+
+PULL QUOTE (one line, for listings)
+  “He is mine without ever truly being mine.”
+
+SPEC
+  Made from: Carob pods
+  Added sugar: None
+  Preservatives: None
+
+IMAGES
+  NONE — this product has no photography at all.
+
+------------------------------------------------------------------------------
+EM RAMIZ   [active]
+------------------------------------------------------------------------------
+Kind        : Olive oil
+URL handle  : em-ramiz
+Named after someone from: Machghara
+
+SIZES / PRICES
+  (one size)  $10.00        stock 0   (marked unavailable)
+
+DESCRIPTION (shown on the product page)
+Overlooking the ancient Phoenician city of Sidon, Aabra sits between the
+Mediterranean and the hills of South Lebanon. From the Mushantaf family, who
+have cultivated olive trees for two generations.
+
+THE STORY — why it carries this name
+(the founder’s own words; this is the heart of the brand)
+I decided to honor my grandmother's lineage because she looks so much like
+her mother. Since we were children, we have always visited them, or they
+have visited us. Their mother's name was Alice. Amale is my teta. Ramiz
+would always come to play cards with us and bring us chocolate. Sophie is
+the one who is always there to help everyone — you have a new baby? She is
+already on a plane. Afaf, the youngest, is always laughing, and oh God, I
+love her macaroni dish. Since the creation of Skype they have spoken every
+single day, at the same hour, one calling the other. My teta always knows
+who is calling without even looking at her screen.
+
+PULL QUOTE (one line, for listings)
+  “My teta always knows who is calling without even looking at her screen.”
+
+SPEC
+  Village: Aabra, South Lebanon
+  Family: Mushantaf, 2nd generation
+  Harvest: Early
+  Acidity: < 0.5%
+
+IMAGES
+  images/products/em-ramiz-1.png
+
+------------------------------------------------------------------------------
+MALVINA   [active]
+------------------------------------------------------------------------------
+Kind        : Olive oil
+URL handle  : malvina
+Named after someone from: Deir Mimas
+
+SIZES / PRICES
+  (one size)  $28.00        stock 12
+
+DESCRIPTION (shown on the product page)
+In South Lebanon, Deir Mimas unfolds among rolling hills lined with olive
+trees, some of which have stood for centuries. From the Hasbani family.
+
+THE STORY — why it carries this name
+(the founder’s own words; this is the heart of the brand)
+I chose to honor my grandfather's mother because although I never had the
+chance to know him, I wanted to pay tribute to him. And what better way than
+celebrating the woman who gave him life? Whenever I ask about her, her
+presence still resonates through the memories of my father and my teta. She
+had the kind of energy you simply don't forget, someone who is still very
+much alive in the memories of those who loved her, and whose legacy somehow
+lives on in me.
+
+PULL QUOTE (one line, for listings)
+  “She had the kind of energy you simply don’t forget.”
+
+SPEC
+  Village: Deir Mimas, South Lebanon
+  Family: Hasbani
+  Harvest: Late September – October
+  Acidity: < 0.5%
+
+IMAGES
+  images/products/malvina-1.png
+  images/products/malvina-2.png
+
+------------------------------------------------------------------------------
+COASTER   [active]
+------------------------------------------------------------------------------
+Kind        : Coaster
+URL handle  : costers
+
+SIZES / PRICES
+  (one size)  $10.00        stock 10
+
+DESCRIPTION (shown on the product page)
+More than a coaster. A piece of Lebanon, wherever you are. Made from
+authentic Lebanese cedar.
+
+IMAGES
+  images/products/costers-1.png
+
+------------------------------------------------------------------------------
+FAYEZ   [active]
+------------------------------------------------------------------------------
+Kind        : Grape molasses
+URL handle  : fayez-for-caroub-molasse
+Named after someone from: Lebanon
+
+SIZES / PRICES
+  (one size)  $10.00        stock 10
+
+DESCRIPTION (shown on the product page)
+Made from carefully selected grapes, crafted using traditional methods to
+preserve its rich flavor and natural sweetness.
+
+THE STORY — why it carries this name
+(the founder’s own words; this is the heart of the brand)
+I had the chance to know him, but not enough, and that has always been my
+greatest regret. In the videos we were always together, always happy, and he
+was always so proud of me. He never failed to make me smile, especially when
+he would put 2 kg of walnuts picked directly from the tree into my suitcase
+because he knew how much I loved them. I will never forget the day I found a
+huge sunflower and brought it to him. He looked at me, told me the name of
+the flower and called me \"the chamess.\" Since that day, the sunflower has
+been my favourite flower.
+
+PULL QUOTE (one line, for listings)
+  “He called me “the chamess.” Since that day, the sunflower has been my favourite flower.”
+
+SPEC
+  Made from: Grapes
+  Method: Traditional reduction
+  Added sugar: None
+
+IMAGES
+  NONE — this product has no photography at all.
+
+------------------------------------------------------------------------------
+TETA NAZIRA   [draft]
+------------------------------------------------------------------------------
+Kind        : Olive oil
+URL handle  : nazira
+
+SIZES / PRICES
+  (one size)  NO PRICE SET  stock 10
+
+DESCRIPTION (shown on the product page)
+Coming soon
+
+IMAGES
+  NONE — this product has no photography at all.
+
+------------------------------------------------------------------------------
+BRI' ZEIT   [active]
+------------------------------------------------------------------------------
+Kind        : Carafe
+URL handle  : bri2-zeit
+
+SIZES / PRICES
+  (one size)  $65.00        stock 10
+
+DESCRIPTION (shown on the product page)
+Inspired by tradition, the Bri' shape evokes the old Lebanese saying that
+history repeats itself. A vessel for your everyday rituals.
+
+IMAGES
+  images/products/bri2-zeit-1.png
+  images/products/bri2-zeit-2.png
+  images/products/bri2-zeit-3.png
+
+------------------------------------------------------------------------------
+TANTOUR   [active]
+------------------------------------------------------------------------------
+Kind        : Carafe
+URL handle  : tantour
+
+SIZES / PRICES
+  (one size)  $75.00        stock 10
+
+DESCRIPTION (shown on the product page)
+Bold and independent. Inspired by the Lebanese princesses who wore tantours,
+it embodies loyalty, strength, and elegance in every curve.
+
+IMAGES
+  images/products/tantour-1.png
+  images/products/tantour-2.png
+  images/products/tantour-3.png
+
+------------------------------------------------------------------------------
+NAJIBE   [draft]
+------------------------------------------------------------------------------
+Kind        : Olive oil
+URL handle  : najibe
+Named after someone from: Zghorta
+
+SIZES / PRICES
+  250 ml      NO PRICE SET  stock 10
+  1 L         NO PRICE SET  stock 0   (marked unavailable)
+  3 L         NO PRICE SET  stock 0   (marked unavailable)
+
+DESCRIPTION (shown on the product page)
+Set high in the mountains of North Lebanon, Douma is a village where
+landscape and heritage are deeply intertwined. From the Chalhoub family,
+three generations in.
+
+THE STORY — why it carries this name
+(the founder’s own words; this is the heart of the brand)
+I am used to call her Najo with my grandmother Nazo, they were the Amar and
+Chamess together, the perfect duo. I remember one end of summer, I couldn't
+come to Lebanon in the traditional July–August so I came just one week in
+September and all I did was staying in Mehmarch in my mom's village with my
+grandmother Nazo and Najo, because it was heaven. Sun, their laughs, good
+food and dolce vita à la libanaise. Today, only my Amar is physically here,
+and that's why I am giving her the name of one of the best olive oils in
+Lebanon.
+
+PULL QUOTE (one line, for listings)
+  “They were the Amar and Chamess together, the perfect duo.”
+
+SPEC
+  Village: Douma, North Lebanon
+  Family: Chalhoub, 3rd generation
+  Harvest: November
+  Acidity: < 0.5%
+
+IMAGES
+  images/products/najibe-2.png
+  images/products/najibe-4.png
+
+------------------------------------------------------------------------------
+MIMI   [draft]
+------------------------------------------------------------------------------
+Kind        : Olive oil
+URL handle  : mimi-olive-oil
+
+SIZES / PRICES
+  250 ml      NO PRICE SET  stock 10
+  1 L         NO PRICE SET  stock 0   (marked unavailable)
+  3 L         NO PRICE SET  stock 0   (marked unavailable)
+
+DESCRIPTION (shown on the product page)
+Coming soon
+
+IMAGES
+  NONE — this product has no photography at all.
+

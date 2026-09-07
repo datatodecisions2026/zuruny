@@ -1,26 +1,154 @@
 @import "tailwindcss";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ------------------------------------------------------------------
+   Zuruny — a cream ground with the brand's oxblood and bronze on top.
+   The photography is dark and chiaroscuro, so images sit on the page as
+   framed plates rather than bleeding into it.
+
+   Contrast on the cream (#F4EDE0): char 15.1:1, char-soft 5.8:1,
+   bronze 5.7:1, oxblood 11.2:1. Foil gold is 2.2:1 and so is used only
+   as decoration over dark imagery, never as text on paper.
+   ------------------------------------------------------------------ */
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: #FEF9E9;
+  --color-paper-deep: #F1E7CF;
+  --color-blush: #EAD4D6;
+  --color-olive: #6E7A3F;
+  --color-card: #FFFCF5;
+  --color-char: #252616;
+  --color-char-soft: #5C5C4C;
+  --color-oxblood: #51110F;
+  --color-oxblood-deep: #380B09;
+  --color-bronze: #6D2636;
+  --color-gold: #EAD4D6;
+
+  --color-background: var(--color-paper);
+  --color-foreground: var(--color-char);
+  --color-border: rgb(109 38 54 / 0.22);
+  --color-ring: var(--color-bronze);
+
+  --font-display: var(--font-cinzel);
+  --font-sans: var(--font-garamond);
+  --font-serif: var(--font-garamond);
+  --font-mono: var(--font-courier);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color-scheme: light;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    color: var(--color-char);
+    font-family: var(--font-garamond), Georgia, serif;
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: var(--color-oxblood);
+    color: var(--color-paper);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-oxblood);
+    outline-offset: 3px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Inscriptional display face, quoting the lettering pressed on the tins. */
+.u-display {
+  font-family: var(--font-cinzel), "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+}
+
+/* The typewriter strip on the tin label — used only where the site is
+   literally reproducing that strip. */
+.u-spec {
+  font-family: var(--font-courier), ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+/* A hairline in bronze — the site's only divider. */
+.u-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(109 38 54 / 0.38) 18%,
+    rgb(109 38 54 / 0.38) 82%,
+    transparent
+  );
+}
+
+.u-measure {
+  max-width: 62ch;
+}
+
+/* StaggeredMenu ships with a white panel; warm it to the page stock. */
+.sm-scope .staggered-menu-panel {
+  background: var(--color-paper-deep) !important;
+  border-left: 1px solid rgb(109 38 54 / 0.28);
+}
+
+.sm-scope .sm-panel-itemLabel {
+  font-family: var(--font-cinzel), serif !important;
+  letter-spacing: 0.05em;
+  color: var(--color-char) !important;
+}
+
+.sm-scope .sm-socials-link,
+.sm-scope .sm-socials-title {
+  color: var(--color-oxblood) !important;
+}
+
+/*
+ * StaggeredMenu only pushes its panel off-screen by running gsap.set(xPercent)
+ * in a layout effect. Until that runs — and permanently if JS is blocked or
+ * fails — the panel renders open across the page, with no way to shut it since
+ * the toggle needs JS too.
+ *
+ * Hiding it with a CSS transform does not work: GSAP reads the existing
+ * transform and appends to it, producing a double shift. So this gates on a
+ * data-ready flag the component sets once positioning is done.
+ */
+.sm-scope:not([data-ready]) .staggered-menu-panel,
+.sm-scope:not([data-ready]) .sm-prelayer {
+  visibility: hidden;
+}
+
+/* The menu toggle and social links ship small; give them a real tap target. */
+.sm-scope .sm-toggle {
+  min-height: 44px;
+  padding-inline: 0.25rem;
+}
+
+.sm-scope .sm-socials-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
