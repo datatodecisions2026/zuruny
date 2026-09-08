@@ -1,18 +1,12 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import nextCoreWebVitals from "eslint-config-next/core-web-vitals";
+import nextTypescript from "eslint-config-next/typescript";
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
+/* eslint-config-next 16 ships flat config directly — FlatCompat is no longer
+   needed and in fact throws on it. */
+const eslintConfig = [
+  ...nextCoreWebVitals,
+  ...nextTypescript,
+  { ignores: [".next/**", "node_modules/**", "zuruny-kit/**"] },
+];
 
 export default eslintConfig;

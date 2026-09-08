@@ -1,154 +1,455 @@
 @import "tailwindcss";
-@import "shadcn/tailwind.css";
 
-/* ------------------------------------------------------------------
-   Zuruny — a cream ground with the brand's oxblood and bronze on top.
-   The photography is dark and chiaroscuro, so images sit on the page as
-   framed plates rather than bleeding into it.
+/* ==========================================================================
+   ZURUNY — dark gallery
+   --------------------------------------------------------------------------
+   Palette B from the brand deck (olive & ochre), inverted onto a near-black
+   ground. This is deliberate: the deck's contrast warning says ochre fails at
+   ~2:1 as text on cream. On this ground it measures ~8.5:1, so the brand's
+   best colour finally becomes usable as more than decoration.
 
-   Contrast on the cream (#F4EDE0): char 15.1:1, char-soft 5.8:1,
-   bronze 5.7:1, oxblood 11.2:1. Foil gold is 2.2:1 and so is used only
-   as decoration over dark imagery, never as text on paper.
-   ------------------------------------------------------------------ */
+   Blush is absent on purpose. So is the cream page, the wallpaper tile at
+   full strength, and the film grain.
+   ========================================================================== */
 
-@theme inline {
-  --color-paper: #FEF9E9;
-  --color-paper-deep: #F1E7CF;
-  --color-blush: #EAD4D6;
-  --color-olive: #6E7A3F;
-  --color-card: #FFFCF5;
-  --color-char: #252616;
-  --color-char-soft: #5C5C4C;
-  --color-oxblood: #51110F;
-  --color-oxblood-deep: #380B09;
-  --color-bronze: #6D2636;
-  --color-gold: #EAD4D6;
+@theme {
+  --color-ground: #0b0908;
+  --color-ground-2: #12100e;
+  --color-ground-3: #1a1714;
 
-  --color-background: var(--color-paper);
-  --color-foreground: var(--color-char);
-  --color-border: rgb(109 38 54 / 0.22);
-  --color-ring: var(--color-bronze);
+  --color-oxblood: #4f0d0f;
+  --color-raspberry: #732530;
+  --color-olive: #817f3c;
+  --color-deep-olive: #666b32;
 
-  --font-display: var(--font-cinzel);
-  --font-sans: var(--font-garamond);
-  --font-serif: var(--font-garamond);
-  --font-mono: var(--font-courier);
+  --color-cream: #f8f5d3;
+  --color-ochre: #d7a739;
+
+  --font-display: var(--font-instrument-serif), ui-serif, Georgia, serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@layer base {
-  html {
-    background-color: var(--color-paper);
-    color-scheme: light;
-    scroll-behavior: smooth;
-  }
+:root {
+  /* Derived text tones — kept as color-mix so they track the ground. */
+  --text-muted: color-mix(in oklab, var(--color-cream) 60%, var(--color-ground));
+  --text-faint: color-mix(in oklab, var(--color-cream) 34%, var(--color-ground));
+  --rule: color-mix(in oklab, var(--color-cream) 14%, transparent);
+  --rule-strong: color-mix(in oklab, var(--color-cream) 28%, transparent);
 
-  body {
-    background-color: var(--color-paper);
-    color: var(--color-char);
-    font-family: var(--font-garamond), Georgia, serif;
-    font-size: 1.0625rem;
-    line-height: 1.75;
-    -webkit-font-smoothing: antialiased;
-    text-rendering: optimizeLegibility;
-  }
+  /* Fluid type scale. */
+  --step--1: clamp(0.75rem, 0.72rem + 0.15vw, 0.82rem);
+  --step-0: clamp(0.95rem, 0.9rem + 0.25vw, 1.06rem);
+  --step-1: clamp(1.2rem, 1.05rem + 0.7vw, 1.5rem);
+  --step-2: clamp(1.6rem, 1.25rem + 1.6vw, 2.4rem);
+  --step-3: clamp(2.2rem, 1.4rem + 3.6vw, 4rem);
+  --step-4: clamp(2.75rem, 1.2rem + 5.4vw, 5.75rem);
+  --step-5: clamp(3.6rem, 0.5rem + 13vw, 12rem);
 
-  ::selection {
-    background: var(--color-oxblood);
-    color: var(--color-paper);
-  }
+  --gutter: clamp(1.25rem, 4vw, 4.5rem);
+  --measure: 34rem;
 
-  :focus-visible {
-    outline: 2px solid var(--color-oxblood);
-    outline-offset: 3px;
-  }
+  color-scheme: dark;
 }
 
-/* Inscriptional display face, quoting the lettering pressed on the tins. */
-.u-display {
-  font-family: var(--font-cinzel), "Times New Roman", serif;
-  font-weight: 500;
-  letter-spacing: 0.06em;
-  line-height: 1.05;
+* {
+  min-width: 0;
 }
 
-/* The typewriter strip on the tin label — used only where the site is
-   literally reproducing that strip. */
-.u-spec {
-  font-family: var(--font-courier), ui-monospace, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.04em;
-  line-height: 1.6;
-}
-
-/* A hairline in bronze — the site's only divider. */
-.u-rule {
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgb(109 38 54 / 0.38) 18%,
-    rgb(109 38 54 / 0.38) 82%,
-    transparent
-  );
-}
-
-.u-measure {
-  max-width: 62ch;
-}
-
-/* StaggeredMenu ships with a white panel; warm it to the page stock. */
-.sm-scope .staggered-menu-panel {
-  background: var(--color-paper-deep) !important;
-  border-left: 1px solid rgb(109 38 54 / 0.28);
-}
-
-.sm-scope .sm-panel-itemLabel {
-  font-family: var(--font-cinzel), serif !important;
-  letter-spacing: 0.05em;
-  color: var(--color-char) !important;
-}
-
-.sm-scope .sm-socials-link,
-.sm-scope .sm-socials-title {
-  color: var(--color-oxblood) !important;
-}
-
-/*
- * StaggeredMenu only pushes its panel off-screen by running gsap.set(xPercent)
- * in a layout effect. Until that runs — and permanently if JS is blocked or
- * fails — the panel renders open across the page, with no way to shut it since
- * the toggle needs JS too.
- *
- * Hiding it with a CSS transform does not work: GSAP reads the existing
- * transform and appends to it, producing a double shift. So this gates on a
- * data-ready flag the component sets once positioning is done.
- */
-.sm-scope:not([data-ready]) .staggered-menu-panel,
-.sm-scope:not([data-ready]) .sm-prelayer {
-  visibility: hidden;
-}
-
-/* The menu toggle and social links ship small; give them a real tap target. */
-.sm-scope .sm-toggle {
-  min-height: 44px;
-  padding-inline: 0.25rem;
-}
-
-.sm-scope .sm-socials-link {
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
+html {
+  background: var(--color-ground);
+  /* No smooth-scroll library. The browser does this natively and it does not
+     fight the user's trackpad the way a scroll-hijacker does. */
+  scroll-behavior: smooth;
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
+}
+
+body {
+  background: var(--color-ground);
+  color: var(--color-cream);
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+::selection {
+  background: var(--color-ochre);
+  color: var(--color-ground);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ochre);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   TYPE
+   -------------------------------------------------------------------------- */
+
+.u-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: 0.92;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.u-mono {
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.u-measure {
+  max-width: var(--measure);
+}
+
+/* The founder's own writing. Set larger and looser than body copy so a
+   layout can never bury it — the brief is explicit that this is the asset. */
+.u-memory {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+  color: color-mix(in oklab, var(--color-cream) 88%, var(--color-ground));
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------------------------
+   BRAND MARK
+   The emblem ships as a white silhouette on transparency, so it is painted
+   with a CSS mask and can be any colour at any size.
+   -------------------------------------------------------------------------- */
+
+.u-emblem {
+  background-color: currentColor;
+  -webkit-mask: var(--emblem-src) center / contain no-repeat;
+  mask: var(--emblem-src) center / contain no-repeat;
+}
+
+/* The sprig tiles seamlessly (verified in the kit). At 4% it reads as paper,
+   not wallpaper — the previous build's mistake was running it loud. */
+.u-sprig::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/brand/pattern-sprig.png") repeat;
+  background-size: 265px 154px;
+  opacity: 0.04;
+  pointer-events: none;
+}
+
+/* The damask does NOT tile cleanly. It gets exactly one contained panel. */
+.u-damask::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("/brand/pattern-damask.png") center / cover no-repeat;
+  opacity: 0.07;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   THE MOTION SYSTEM
+   --------------------------------------------------------------------------
+   One primitive, used everywhere: a scroll-driven animation on a `view()`
+   timeline. Everything below animates only `transform`, `opacity`, `clip-path`
+   and `filter` — all compositor properties, so this stays smooth without a
+   single line of JavaScript on the main thread.
+
+   The previous build used GSAP + Lenis + OGL + Motion together and read as a
+   components demo. This file is the entire replacement.
+
+   Progressive enhancement: the animated *initial* states live inside the
+   @supports block. A browser without scroll-driven animation support simply
+   renders every section in its finished state — nothing is hidden, nothing
+   needs a JS fallback to become visible.
+   ========================================================================== */
+
+@keyframes m-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 4rem, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes m-char {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.7em, 0) rotate(6deg);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+}
+
+@keyframes m-zoom {
+  from {
+    transform: scale(1.35);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes m-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* The track holds two identical halves, so -50% is a seamless wrap. */
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes m-slide-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--from-x, -3rem), 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes m-drift {
+  from {
+    transform: translate3d(0, calc(-1 * var(--drift, 8%)), 0) scale(1.16);
+  }
+  to {
+    transform: translate3d(0, var(--drift, 8%), 0) scale(1.16);
+  }
+}
+
+@keyframes m-settle {
+  from {
+    opacity: 0;
+    transform: scale(1.09);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes m-wipe {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@keyframes m-line {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes m-dim {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.15;
+  }
+}
+
+/* Above-the-fold content must NOT use a view() timeline. An element that is
+   already on screen at scroll 0 has not "entered" the viewport, so it renders
+   frozen part-way through its entry animation — which is how the hero's call
+   to action ended up half-faded. Content in the first screen animates on load
+   instead, and only content below the fold is driven by scroll. */
+@media (prefers-reduced-motion: no-preference) {
+  .m-intro > * {
+    animation: m-rise 0.9s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 110ms + 150ms);
+  }
+
+  /* A single above-the-fold element, without needing an .m-intro parent. */
+  .m-intro-item {
+    animation: m-rise 0.9s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 90ms + 200ms);
+  }
+
+  /* Mounted lists — the shop filter, for one. Uses a time-based stagger
+     because the list remounts wherever the reader happens to be, which a
+     view() timeline cannot handle. */
+  .m-cascade > * {
+    animation: m-rise 0.75s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 70ms + 60ms);
+  }
+
+  /* Kinetic type. Each character carries its own index. */
+  .m-chars-intro .m-char {
+    display: inline-block;
+    animation: m-char 0.7s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 32ms + 120ms);
+  }
+
+  .m-char {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  /* Hover tilt. The card leans toward the reader without any JS pointer
+     tracking — cheap, and it degrades to nothing on touch. */
+  @media (hover: hover) and (pointer: fine) {
+    .m-tilt {
+      transform-style: preserve-3d;
+      transition: transform 0.6s var(--ease-out-soft);
+    }
+    .m-tilt:hover {
+      transform: perspective(900px) rotateX(2.5deg) rotateY(-2.5deg)
+        translate3d(0, -0.5rem, 0);
+    }
+  }
+
+  /* Infinite name strip. */
+  .m-marquee-track {
+    animation: m-marquee var(--marquee-duration, 40s) linear infinite;
+  }
+  .m-marquee:hover .m-marquee-track {
+    animation-play-state: paused;
+  }
+}
+
+/* An underline that grows from the left on hover. */
+.u-underline {
+  position: relative;
+}
+.u-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -0.35em;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.45s var(--ease-out-soft);
+}
+.u-underline:hover::after,
+.u-underline:focus-visible::after {
+  transform: scaleX(1);
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    /* Enters from below and settles. The workhorse. */
+    .m-rise {
+      animation: m-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 32%;
+    }
+
+    /* Sequenced children. --i is set inline per child. */
+    .m-seq > * {
+      animation: m-rise linear both;
+      animation-timeline: view();
+      animation-range: entry calc(2% + var(--i, 0) * 5%) cover
+        calc(28% + var(--i, 0) * 5%);
+    }
+
+    /* Photography settles into focus rather than popping in. */
+    .m-settle {
+      animation: m-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 40%;
+    }
+
+    /* Parallax. Must sit inside an overflow-clipped frame. */
+    .m-drift {
+      animation: m-drift linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+
+    .m-wipe {
+      animation: m-wipe linear both;
+      animation-timeline: view();
+      animation-range: entry 10% cover 45%;
+    }
+
+    /* Rules draw themselves across. */
+    .m-line {
+      transform-origin: left center;
+      animation: m-line linear both;
+      animation-timeline: view();
+      animation-range: entry 20% cover 40%;
+    }
+
+    /* Sticky headings fade back as their section scrolls past. */
+    .m-dim {
+      animation: m-dim linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+
+    /* Page-wide read progress, driven by the document scroll. */
+    .m-progress {
+      transform-origin: left center;
+      animation: m-line linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    /* Kinetic type below the fold: characters resolve as the line scrolls in.
+       Scrubbed rather than played, so it tracks the reader's own scroll. */
+    .m-chars-scroll .m-char {
+      animation: m-char linear both;
+      animation-timeline: view();
+      animation-range: entry calc(4% + var(--i, 0) * 1.4%) cover
+        calc(26% + var(--i, 0) * 1.4%);
+    }
+
+    /* A big photograph that un-zooms as it crosses the viewport. */
+    .m-zoom {
+      animation: m-zoom linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 60%;
+    }
+
+    /* Slide in from a side. --from-x sets the direction and distance. */
+    .m-slide {
+      animation: m-slide-in linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 38%;
+    }
+  }
+}
+
+/* Reduced motion: hovers and transitions collapse too, not just scroll work. */
+@media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 0.001ms !important;
   }
 }

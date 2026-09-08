@@ -1,121 +1,153 @@
-export const revalidate = 300;
-import Image from "next/image";
-import Link from "next/link";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProduct, getProducts } from "@/lib/catalog";
-import BuyPanel from "@/components/shop/BuyPanel";
-import TopBar from "@/components/site/TopBar";
-import { Quatrefoil } from "@/components/site/Quatrefoil";
+import { ProductGallery } from "@/components/ProductGallery";
+import { ProductCard } from "@/components/ProductCard";
+import { AddToCart } from "@/components/AddToCart";
+import { KineticHeading } from "@/components/KineticHeading";
+import {
+  liveProducts,
+  fromPriceCents,
+  formatUSD,
+  KIND_LABEL,
+  SHIPS_TO,
+} from "@/lib/catalog";
 
-export async function generateStaticParams() {
-  return (await getProducts()).map((p) => ({ handle: p.handle }));
+/** Only active products get a page. Drafts 404 rather than leaking. */
+export function generateStaticParams() {
+  return liveProducts.map((p) => ({ handle: p.handle }));
 }
 
 export async function generateMetadata({
   params,
-}: { params: Promise<{ handle: string }> }): Promise<Metadata> {
+}: {
+  params: Promise<{ handle: string }>;
+}): Promise<Metadata> {
   const { handle } = await params;
-  const product = await getProduct(handle);
-  if (!product) return { title: "Not found — Zuruny" };
+  const product = liveProducts.find((p) => p.handle === handle);
+  if (!product) return { title: "Not found" };
+
   return {
-    title: `${product.name} — Zuruny`,
-    description:
-      product.description ??
-      product.note ??
-      `${product.name}, ${product.kind.toLowerCase()} from Zuruny.`,
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: `${product.name} · Zuruny`,
+      description: product.pullQuote ?? product.description,
+      images: product.images.length ? [product.images[0].src] : undefined,
+    },
   };
 }
 
 export default async function ProductPage({
   params,
-}: { params: Promise<{ handle: string }> }) {
+}: {
+  params: Promise<{ handle: string }>;
+}) {
   const { handle } = await params;
-  const product = await getProduct(handle);
+  const product = liveProducts.find((p) => p.handle === handle);
   if (!product) notFound();
 
+  const price = fromPriceCents(product);
+  const related = liveProducts
+    .filter((p) => p.handle !== product.handle)
+    .slice(0, 3);
+
   return (
-    <>
-      <TopBar />
-    <main className="px-6 pb-24 pt-28 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-6xl">
-        <Link
-          href="/shop"
-          className="text-sm tracking-[0.14em] text-char-soft underline decoration-bronze/30 underline-offset-8 transition-colors hover:text-char"
-        >
-          All products
+    <main id="main" className="pt-28">
+      <nav
+        aria-label="Breadcrumb"
+        className="u-mono px-[var(--gutter)] py-6 text-[var(--text-faint)]"
+      >
+        <Link href="/shop" className="transition-colors hover:text-cream">
+          Shop
         </Link>
+        <span aria-hidden className="mx-3">
+          /
+        </span>
+        <span className="text-[var(--text-muted)]">
+          {KIND_LABEL[product.kind]}
+        </span>
+      </nav>
 
-        <div className="mt-8 grid gap-12 lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-16">
-          <div className="space-y-4">
-            {product.images.length ? (
-              product.images.map((src, i) => (
-                <div
-                  key={src}
-                  className="relative aspect-[4/5] w-full overflow-hidden border border-bronze/20 bg-paper-deep"
-                >
-                  <Image
-                    src={src}
-                    alt={`${product.name}, view ${i + 1}`}
-                    fill
-                    priority={i === 0}
-                    sizes="(max-width: 1024px) 100vw, 55vw"
-                    className="object-cover"
-                  />
-                </div>
-              ))
-            ) : (
-              <div className="flex aspect-[4/5] w-full items-center justify-center border border-bronze/20 bg-paper-deep">
-                <Quatrefoil className="h-32 w-32 text-bronze/40" />
-              </div>
-            )}
-          </div>
-
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <p className="u-spec text-bronze/80">{product.kind}</p>
-            <h1 className="u-display mt-2 text-[clamp(2.25rem,5vw,3.5rem)] text-char">
-              {product.name}
-            </h1>
-
-            <div className="u-rule my-7" />
-
-            <BuyPanel product={product} />
-
-            {product.description ? (
-              <p className="u-measure mt-10 text-char/80">{product.description}</p>
-            ) : null}
-            {product.note ? (
-              <p className="u-measure mt-10 text-char/80">{product.note}</p>
-            ) : null}
-
-            {product.spec?.length ? (
-              <dl className="u-spec mt-8 border border-bronze/25 bg-paper-deep px-4 py-3 text-char/80">
-                {product.spec.map((row) => (
-                  <div
-                    key={row.label}
-                    className="flex justify-between gap-4 border-b border-bronze/15 py-1 last:border-0"
-                  >
-                    <dt className="text-char-soft">{row.label}</dt>
-                    <dd className="text-right text-char">{row.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : null}
-          </div>
+      <div className="grid gap-x-[clamp(2rem,6vw,6rem)] gap-y-14 px-[var(--gutter)] lg:grid-cols-2">
+        <div className="m-intro-item lg:sticky lg:top-28 lg:self-start">
+          <ProductGallery product={product} />
         </div>
 
-        {product.story ? (
-          <section className="mt-24 border-t border-bronze/20 pt-12">
-            <h2 className="u-display text-lg text-bronze">
-              Why it carries this name
-            </h2>
-            <blockquote className="u-measure mt-6 text-lg leading-[1.85] text-char/85">
-              {product.story}
-            </blockquote>
-          </section>
-        ) : null}
+        <div>
+          <p className="m-intro-item u-mono text-ochre">
+            {KIND_LABEL[product.kind]}
+            {product.namedAfterFrom && ` · from ${product.namedAfterFrom}`}
+          </p>
+
+          <KineticHeading
+            as="h1"
+            text={product.name}
+            className="u-display mt-4 text-[length:var(--step-4)] text-cream"
+          />
+
+          <p className="m-intro-item u-display mt-6 text-[length:var(--step-2)] text-cream">
+            {price === null ? (
+              <span className="text-[var(--text-faint)]">Price to come</span>
+            ) : (
+              formatUSD(price)
+            )}
+          </p>
+
+          <p className="m-intro-item u-measure mt-8 leading-relaxed text-[var(--text-muted)]">
+            {product.description}
+          </p>
+
+          <div className="m-intro-item mt-12">
+            <AddToCart product={product} />
+          </div>
+
+          {product.spec.length > 0 && (
+            <dl className="m-rise mt-14 grid gap-px border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-2">
+              {product.spec.map((s) => (
+                <div key={s.label} className="bg-ground px-5 py-4">
+                  <dt className="u-mono text-[var(--text-faint)]">{s.label}</dt>
+                  <dd className="mt-1 text-cream">{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
+
+          <p className="m-rise u-mono mt-8 text-[var(--text-faint)]">
+            Ships from Beirut to {SHIPS_TO.length} countries
+          </p>
+        </div>
       </div>
+
+      {product.memory && (
+        <section className="mt-[clamp(5rem,12vh,9rem)] border-t border-[var(--rule)] px-[var(--gutter)] py-[clamp(4rem,10vh,7rem)]">
+          <p className="m-rise u-mono text-ochre">
+            Why it carries this name
+          </p>
+          {/* The founder's own words. Set large, never trimmed. */}
+          <blockquote className="m-rise u-memory mt-8 max-w-[46rem] text-[length:var(--step-2)]">
+            {product.memory}
+          </blockquote>
+          {product.namedAfterFrom && (
+            <p className="m-rise u-mono mt-8 text-[var(--text-muted)]">
+              {product.name} &middot; from {product.namedAfterFrom}
+            </p>
+          )}
+        </section>
+      )}
+
+      <section className="border-t border-[var(--rule)] px-[var(--gutter)] py-[clamp(4rem,10vh,7rem)]">
+        <h2 className="m-rise u-display text-[length:var(--step-3)] text-cream">
+          The rest of it
+        </h2>
+        <ul className="m-seq mt-12 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
+          {related.map((p, i) => (
+            <li key={p.handle} style={{ ["--i" as string]: i }}>
+              <ProductCard product={p} />
+            </li>
+          ))}
+        </ul>
+      </section>
     </main>
-    </>
   );
 }
