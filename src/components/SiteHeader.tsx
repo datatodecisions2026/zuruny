@@ -1,9 +1,18 @@
 import Link from "next/link";
 import { CartButton } from "@/components/CartButton";
-import { LanguageSwitch, RegionSwitch } from "@/components/PreferenceSwitches";
+import { MobileMenu } from "@/components/MobileMenu";
+import { LanguageSwitch } from "@/components/PreferenceSwitches";
 import { getDict, localePath, type Locale } from "@/lib/i18n";
 import type { Region } from "@/lib/region";
 
+/**
+ * One bar, three zones: mark, navigation, controls.
+ *
+ * The previous version stacked up to four rows on a phone — nav links, a
+ * delivery region, a language pair and a wrapping price note — and they
+ * collided at 390px. Everything below `lg` now collapses into the menu, so
+ * the bar itself is only ever a single row: mark, basket, menu.
+ */
 export function SiteHeader({
   locale,
   region,
@@ -30,14 +39,14 @@ export function SiteHeader({
       {/* Gradient only, no backdrop-blur: the filter applies across the whole
           box while the gradient fades, which leaves a hard seam straight
           across the hero photograph. */}
-      <div className="bg-gradient-to-b from-ground via-ground/80 to-transparent pb-5">
+      <div className="bg-gradient-to-b from-ground via-ground/85 to-transparent pb-6">
         <nav
           aria-label={t.nav.primary}
-          className="mx-auto flex items-center justify-between gap-6 px-[var(--gutter)] py-4"
+          className="flex items-center gap-6 px-[var(--gutter)] py-4"
         >
           <Link
             href={localePath(locale, "/")}
-            className="group flex items-center gap-3"
+            className="group flex shrink-0 items-center gap-3"
             aria-label={t.nav.home}
           >
             <span
@@ -48,38 +57,9 @@ export function SiteHeader({
             <span className="u-mono text-cream">Zuruny</span>
           </Link>
 
-          <div className="flex items-center gap-6">
-            <ul className="hidden items-center gap-6 lg:flex">
-              {nav.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className="u-mono u-underline text-[var(--text-muted)] transition-colors duration-300 hover:text-cream"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-
-            <div className="hidden items-center gap-4 sm:flex">
-              <RegionSwitch />
-              <span aria-hidden className="text-[var(--rule-strong)]">
-                |
-              </span>
-              <LanguageSwitch />
-            </div>
-
-            <CartButton />
-          </div>
-        </nav>
-
-        {/* Below `lg` the inline list is hidden, so the same links get their
-            own row. A hamburger would hide the shop behind a tap on a site
-            with three destinations. These stack rather than sharing a row:
-            side by side at 390px they collide. */}
-        <div className="flex flex-col gap-2 px-[var(--gutter)] pb-1 lg:hidden">
-          <ul className="flex flex-wrap items-center gap-x-5 gap-y-1">
+          {/* Centre zone. Only exists on desktop; on smaller screens these
+              links live in the menu at display size. */}
+          <ul className="hidden flex-1 items-center justify-center gap-8 lg:flex">
             {nav.map((item) => (
               <li key={item.href}>
                 <Link
@@ -92,25 +72,20 @@ export function SiteHeader({
             ))}
           </ul>
 
-          {/* Only below `sm` — at `sm` and up these sit in the row above. */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:hidden">
-            <span className="u-mono text-[var(--text-faint)]">
-              {t.region.label}
-            </span>
-            <RegionSwitch />
-            <span aria-hidden className="text-[var(--rule-strong)]">
-              |
-            </span>
-            <LanguageSwitch />
-          </div>
-        </div>
+          <div className="ml-auto flex items-center gap-4 lg:ml-0">
+            <div className="hidden lg:block">
+              <LanguageSwitch />
+            </div>
 
-        {/* Says which prices are on screen, in words, rather than leaving the
-            visitor to work out why a tin costs what it costs. Hidden on the
-            narrowest screens, where it wraps to two lines and pushes a fixed
-            header over the page beneath it; the labelled switch carries the
-            same meaning there. */}
-        <p className="u-mono hidden px-[var(--gutter)] pt-2 text-[var(--text-faint)] sm:block">
+            <CartButton />
+            <MobileMenu />
+          </div>
+        </nav>
+
+        {/* Which prices are on screen, in words. Desktop only — on a phone it
+            wrapped to two lines and pushed the fixed bar over the page; the
+            menu carries the same sentence beside the region switch. */}
+        <p className="u-mono hidden px-[var(--gutter)] text-[var(--text-faint)] lg:block">
           {region === "LB" ? t.region.lbNote : t.region.intlNote}
         </p>
       </div>

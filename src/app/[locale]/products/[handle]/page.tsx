@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ProductCard } from "@/components/ProductCard";
@@ -9,7 +9,7 @@ import { KineticHeading } from "@/components/KineticHeading";
 import { liveProducts, fromPriceCents, formatUSD, SHIPS_TO } from "@/lib/catalog";
 import { descriptionFor, specFor } from "@/lib/catalog.fr";
 import { getDict, isLocale, localePath, LOCALES } from "@/lib/i18n";
-import { REGION_COOKIE, isRegion, maybePriceForRegion, type Region } from "@/lib/region";
+import { REGION_HEADER, isRegion, maybePriceForRegion, type Region } from "@/lib/region";
 
 /** Only active products get a page. Drafts 404 rather than leaking. */
 export function generateStaticParams() {
@@ -50,8 +50,8 @@ export default async function ProductPage({
   if (!product) notFound();
 
   const t = getDict(locale);
-  const cookieRegion = (await cookies()).get(REGION_COOKIE)?.value;
-  const region: Region = isRegion(cookieRegion) ? cookieRegion : "INTL";
+  const headerRegion = (await headers()).get(REGION_HEADER);
+  const region: Region = isRegion(headerRegion) ? headerRegion : "INTL";
 
   const price = maybePriceForRegion(fromPriceCents(product), region);
   const spec = specFor(product, locale);

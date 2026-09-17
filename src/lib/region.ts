@@ -4,6 +4,12 @@
  * Zuruny quotes one base price in USD. Inside Lebanon that is what you pay.
  * Outside Lebanon it is multiplied, to cover export, freight and handling.
  *
+ * The region is DETECTED and is not a user preference. There is deliberately
+ * no switch: if a visitor could pick their own region, anyone abroad would
+ * simply choose Lebanon and pay 40% of the asking price. It is resolved once
+ * per request in the proxy from the visitor's country and passed down as a
+ * request header.
+ *
  * The multiplier is applied to integer cents and rounded once, here. Nothing
  * else in the codebase is allowed to do price arithmetic — that is how you end
  * up with a basket that disagrees with a product page by a cent.
@@ -12,13 +18,16 @@
 export const REGIONS = ["LB", "INTL"] as const;
 export type Region = (typeof REGIONS)[number];
 
-export const REGION_COOKIE = "zuruny_region";
+/** Set by the proxy on every request; read by the server components. */
+export const REGION_HEADER = "x-zuruny-region";
 
 /** Outside Lebanon, everything is 2.5x the Lebanon price. */
 export const INTL_MULTIPLIER = 2.5;
 
 export function isRegion(value: unknown): value is Region {
-  return typeof value === "string" && (REGIONS as readonly string[]).includes(value);
+  return (
+    typeof value === "string" && (REGIONS as readonly string[]).includes(value)
+  );
 }
 
 /**
@@ -38,7 +47,11 @@ export function maybePriceForRegion(
   return baseCents === null ? null : priceForRegion(baseCents, region);
 }
 
-/** Vercel gives us the visitor's country; only Lebanon gets local pricing. */
+/**
+ * Vercel gives us the visitor's country. Only Lebanon gets local pricing, and
+ * anything unknown falls through to international — the safer default, since
+ * under-quoting means eating the shipping difference on a real order.
+ */
 export function regionFromCountry(country: string | null | undefined): Region {
   return country?.toUpperCase() === "LB" ? "LB" : "INTL";
 }

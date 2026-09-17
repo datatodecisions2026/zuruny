@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { Hero } from "@/components/Hero";
 import { Ledger } from "@/components/Ledger";
@@ -8,7 +8,7 @@ import { Film } from "@/components/Film";
 import { Objects } from "@/components/Objects";
 import { Reach } from "@/components/Reach";
 import { isLocale } from "@/lib/i18n";
-import { REGION_COOKIE, isRegion, type Region } from "@/lib/region";
+import { REGION_HEADER, isRegion, type Region } from "@/lib/region";
 
 /**
  * Seven sections, each about one screen. The order is deliberate:
@@ -23,8 +23,8 @@ export default async function HomePage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const cookieRegion = (await cookies()).get(REGION_COOKIE)?.value;
-  const region: Region = isRegion(cookieRegion) ? cookieRegion : "INTL";
+  const headerRegion = (await headers()).get(REGION_HEADER);
+  const region: Region = isRegion(headerRegion) ? headerRegion : "INTL";
 
   return (
     <main id="main">

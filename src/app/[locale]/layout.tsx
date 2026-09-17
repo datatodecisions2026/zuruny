@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 import { CartProvider } from "@/lib/cart";
 import { PreferencesProvider } from "@/lib/preferences";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CartDrawer } from "@/components/CartDrawer";
 import { LOCALES, isLocale } from "@/lib/i18n";
-import { REGION_COOKIE, isRegion, type Region } from "@/lib/region";
+import { REGION_HEADER, isRegion, type Region } from "@/lib/region";
 
 export function generateStaticParams() {
   return LOCALES.map((locale) => ({ locale }));
@@ -22,10 +22,10 @@ export default async function LocaleLayout({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  // Written by the proxy from the visitor's country on first request, and
-  // overwritten only when the visitor picks a region themselves.
-  const cookieRegion = (await cookies()).get(REGION_COOKIE)?.value;
-  const region: Region = isRegion(cookieRegion) ? cookieRegion : "INTL";
+  // Detected per request by the proxy from the visitor's country. Not a
+  // preference, so there is nothing to persist and nothing to override.
+  const headerRegion = (await headers()).get(REGION_HEADER);
+  const region: Region = isRegion(headerRegion) ? headerRegion : "INTL";
 
   return (
     <PreferencesProvider locale={locale} region={region}>
