@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useCart } from "@/lib/cart";
+import { usePreferences } from "@/lib/preferences";
+import { priceForRegion } from "@/lib/region";
 import {
   formatUSD,
   isBuyable,
@@ -17,6 +19,7 @@ function sellable(v: Variant): boolean {
 
 export function AddToCart({ product }: { product: Product }) {
   const { add } = useCart();
+  const { region, t } = usePreferences();
 
   const firstSellable = product.variants.find(sellable);
   const [selected, setSelected] = useState<Variant>(
@@ -33,20 +36,20 @@ export function AddToCart({ product }: { product: Product }) {
     return (
       <div className="border-t border-[var(--rule)] pt-8">
         <p className="u-display text-[length:var(--step-2)] text-[var(--text-faint)]">
-          {reason === "no-price" ? "Price to come" : "Out of stock"}
+          {reason === "no-price" ? t.product.priceToCome : t.product.outOfStock}
         </p>
         <p className="u-measure mt-3 text-[length:var(--step--1)] leading-relaxed text-[var(--text-muted)]">
           {reason === "no-price"
-            ? "This one is not in production yet. We will publish a price when it is."
-            : "This batch has sold out. Write to us and we will tell you when the next one is pressed."}
+            ? t.product.notYetBody
+            : t.product.outOfStockBody}
         </p>
         <a
           href={`mailto:hello@zuruny.co?subject=${encodeURIComponent(
-            `Tell me when ${product.name} is back`,
+            `${product.name} — ${t.product.tellMeWhenBack}`,
           )}`}
           className="u-mono mt-6 inline-block border border-[var(--rule-strong)] px-7 py-4 text-cream transition-colors duration-300 hover:border-ochre hover:text-ochre"
         >
-          Tell me when it is back
+          {t.product.tellMeWhenBack}
         </a>
       </div>
     );
@@ -55,12 +58,18 @@ export function AddToCart({ product }: { product: Product }) {
   const maxQty = Math.min(selected.stock, 12);
   const canAdd = sellable(selected);
   const lowStock = selected.stock > 0 && selected.stock <= 5;
+  const unit =
+    selected.priceCents === null
+      ? null
+      : priceForRegion(selected.priceCents, region);
 
   return (
     <div className="border-t border-[var(--rule)] pt-8">
       {hasChoices && (
         <fieldset className="mb-8">
-          <legend className="u-mono mb-4 text-[var(--text-muted)]">Size</legend>
+          <legend className="u-mono mb-4 text-[var(--text-muted)]">
+            {t.product.size}
+          </legend>
           <div className="flex flex-wrap gap-3">
             {product.variants.map((v) => {
               const ok = sellable(v);
@@ -81,7 +90,7 @@ export function AddToCart({ product }: { product: Product }) {
                       : "border-[var(--rule-strong)] text-cream hover:border-cream"
                   } ${!ok ? "cursor-not-allowed border-[var(--rule)] text-[var(--text-faint)] line-through hover:border-[var(--rule)]" : ""}`}
                 >
-                  {v.label ?? "One size"}
+                  {v.label ?? t.product.oneSize}
                 </button>
               );
             })}
@@ -93,24 +102,25 @@ export function AddToCart({ product }: { product: Product }) {
         <div>
           {/* Labelled "Total", not "Price": the number tracks quantity, and the
               unit price is already stated above the fold. */}
-          <p className="u-mono text-[var(--text-muted)]">Total</p>
+          <p className="u-mono text-[var(--text-muted)]">{t.product.total}</p>
           <p className="u-display mt-1 text-[length:var(--step-2)] text-cream">
-            {selected.priceCents === null
-              ? "—"
-              : formatUSD(selected.priceCents * qty)}
+            {unit === null ? "—" : formatUSD(unit * qty)}
           </p>
         </div>
 
         <div>
-          <label className="u-mono mb-2 block text-[var(--text-muted)]" htmlFor={`qty-${product.handle}`}>
-            Quantity
+          <label
+            className="u-mono mb-2 block text-[var(--text-muted)]"
+            htmlFor={`qty-${product.handle}`}
+          >
+            {t.product.quantity}
           </label>
           <div className="flex items-stretch border border-[var(--rule-strong)]">
             <button
               type="button"
               onClick={() => setQty((q) => Math.max(1, q - 1))}
               disabled={qty <= 1}
-              aria-label="Decrease quantity"
+              aria-label={t.product.decrease(product.name)}
               className="px-4 py-3 text-cream transition-colors duration-200 hover:text-ochre disabled:text-[var(--text-faint)]"
             >
               &minus;
@@ -125,7 +135,7 @@ export function AddToCart({ product }: { product: Product }) {
               type="button"
               onClick={() => setQty((q) => Math.min(maxQty, q + 1))}
               disabled={qty >= maxQty}
-              aria-label="Increase quantity"
+              aria-label={t.product.increase(product.name)}
               className="px-4 py-3 text-cream transition-colors duration-200 hover:text-ochre disabled:text-[var(--text-faint)]"
             >
               +
@@ -140,12 +150,12 @@ export function AddToCart({ product }: { product: Product }) {
         onClick={() => add(product.handle, selected.label, qty)}
         className="u-mono mt-8 w-full bg-cream px-7 py-5 text-ground transition-colors duration-300 hover:bg-ochre disabled:cursor-not-allowed disabled:bg-[var(--rule)] disabled:text-[var(--text-faint)]"
       >
-        Add to basket
+        {t.product.addToBasket}
       </button>
 
       {lowStock && (
         <p className="u-mono mt-4 text-ochre">
-          Only {selected.stock} left
+          {t.product.onlyNLeft(selected.stock)}
         </p>
       )}
     </div>

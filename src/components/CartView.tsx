@@ -3,37 +3,48 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart, orderSummary } from "@/lib/cart";
+import { usePreferences } from "@/lib/preferences";
+import { localePath } from "@/lib/i18n";
 import { formatUSD, SHIPS_TO } from "@/lib/catalog";
 
 export function CartView() {
   const { lines, count, subtotalCents, setQty, remove, clear, ready } =
     useCart();
+  const { locale, region, t } = usePreferences();
 
+  const regionName = region === "LB" ? t.region.lebanon : t.region.international;
   const mailto = `mailto:hello@zuruny.co?subject=${encodeURIComponent(
-    "Order request",
-  )}&body=${encodeURIComponent(orderSummary(lines, subtotalCents))}`;
+    t.cart.orderSubject,
+  )}&body=${encodeURIComponent(
+    orderSummary(lines, subtotalCents, {
+      intro: t.cart.orderIntro,
+      subtotal: t.cart.orderSubtotal,
+      address: t.cart.orderAddress,
+      region: t.cart.orderRegion,
+    }, regionName),
+  )}`;
 
   return (
     <main
       id="main"
-      className="min-h-[70svh] px-[var(--gutter)] pb-[clamp(4rem,10vh,8rem)] pt-36"
+      className="min-h-[70svh] px-[var(--gutter)] pb-[clamp(4rem,10vh,8rem)] pt-52 sm:pt-44 lg:pt-36"
     >
       <h1 className="m-intro-item u-display text-[length:var(--step-3)] text-cream">
-        Your basket
+        {t.cart.title}
       </h1>
 
       {!ready ? (
-        <p className="u-mono mt-8 text-[var(--text-faint)]">Loading…</p>
+        <p className="u-mono mt-8 text-[var(--text-faint)]">{t.cart.loading}</p>
       ) : lines.length === 0 ? (
         <div className="mt-12">
           <p className="u-measure text-[length:var(--step-1)] text-[var(--text-muted)]">
-            Nothing in it yet.
+            {t.cart.empty}
           </p>
           <Link
-            href="/shop"
+            href={localePath(locale, "/shop")}
             className="u-mono mt-8 inline-block bg-cream px-7 py-4 text-ground transition-colors duration-300 hover:bg-ochre"
           >
-            Browse the shop
+            {t.cart.browseShop}
           </Link>
         </div>
       ) : (
@@ -44,7 +55,7 @@ export function CartView() {
               return (
                 <li key={line.key} className="m-rise flex gap-6 py-7">
                   <Link
-                    href={`/products/${line.product.handle}`}
+                    href={localePath(locale, `/products/${line.product.handle}`)}
                     className="relative size-28 shrink-0 overflow-hidden bg-ground-2 sm:size-36"
                   >
                     {image ? (
@@ -70,7 +81,7 @@ export function CartView() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <Link
-                          href={`/products/${line.product.handle}`}
+                          href={localePath(locale, `/products/${line.product.handle}`)}
                           className="u-display text-[length:var(--step-2)] text-cream transition-colors duration-300 hover:text-ochre"
                         >
                           {line.product.name}
@@ -81,11 +92,11 @@ export function CartView() {
                           </p>
                         )}
                         <p className="u-mono mt-1 text-[var(--text-muted)]">
-                          {formatUSD(line.unitPriceCents)} each
+                          {t.cart.each(formatUSD(line.unitPriceCents))}
                         </p>
                         {line.clamped && (
                           <p className="u-mono mt-2 text-ochre">
-                            Reduced to {line.qty} — stock changed
+                            {t.cart.reducedTo(line.qty)}
                           </p>
                         )}
                       </div>
@@ -98,7 +109,7 @@ export function CartView() {
                       <div className="flex items-stretch border border-[var(--rule-strong)]">
                         <button
                           type="button"
-                          aria-label={`Decrease quantity of ${line.product.name}`}
+                          aria-label={t.product.decrease(line.product.name)}
                           onClick={() => setQty(line.key, line.qty - 1)}
                           className="px-4 py-2 text-cream transition-colors hover:text-ochre"
                         >
@@ -109,7 +120,7 @@ export function CartView() {
                         </span>
                         <button
                           type="button"
-                          aria-label={`Increase quantity of ${line.product.name}`}
+                          aria-label={t.product.increase(line.product.name)}
                           onClick={() => setQty(line.key, line.qty + 1)}
                           disabled={line.qty >= line.variant.stock}
                           className="px-4 py-2 text-cream transition-colors hover:text-ochre disabled:text-[var(--text-faint)]"
@@ -122,7 +133,7 @@ export function CartView() {
                         onClick={() => remove(line.key)}
                         className="u-mono text-[var(--text-faint)] underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
                       >
-                        Remove
+                        {t.cart.remove}
                       </button>
                     </div>
                   </div>
@@ -133,11 +144,11 @@ export function CartView() {
 
           <aside className="lg:sticky lg:top-28 lg:self-start">
             <div className="border border-[var(--rule)] p-7">
-              <h2 className="u-mono text-[var(--text-muted)]">Summary</h2>
+              <h2 className="u-mono text-[var(--text-muted)]">{t.cart.summary}</h2>
 
               <div className="mt-6 flex items-baseline justify-between">
                 <span className="text-[var(--text-muted)]">
-                  {count} {count === 1 ? "item" : "items"}
+                  {count} {count === 1 ? t.cart.item : t.cart.items}
                 </span>
                 <span className="u-display text-[length:var(--step-2)] text-cream">
                   {formatUSD(subtotalCents)}
@@ -145,7 +156,7 @@ export function CartView() {
               </div>
 
               <p className="u-mono mt-2 text-[var(--text-faint)]">
-                Shipping quoted by email
+                {t.cart.shippingByEmail}
               </p>
 
               {/* The honest bit. There is no payment provider wired up, so the
@@ -153,28 +164,26 @@ export function CartView() {
                   would dead-end at the last step. */}
               <div className="mt-7 border-t border-[var(--rule)] pt-6">
                 <p className="text-[length:var(--step--1)] leading-relaxed text-[var(--text-muted)]">
-                  Card payment is not live yet. Send this basket to us and we
-                  will reply with a shipping quote for your country and a way to
-                  pay.
+                  {t.cart.paymentNotice}
                 </p>
                 <a
                   href={mailto}
                   className="u-mono mt-6 block bg-cream px-7 py-4 text-center text-ground transition-colors duration-300 hover:bg-ochre"
                 >
-                  Send this order
+                  {t.cart.sendOrder}
                 </a>
                 <button
                   type="button"
                   onClick={clear}
                   className="u-mono mt-4 w-full py-2 text-[var(--text-faint)] underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
                 >
-                  Empty basket
+                  {t.cart.emptyBasket}
                 </button>
               </div>
             </div>
 
             <p className="u-mono mt-6 text-[var(--text-faint)]">
-              We ship to {SHIPS_TO.length} countries
+              {t.cart.shipTo(SHIPS_TO.length)}
             </p>
           </aside>
         </div>

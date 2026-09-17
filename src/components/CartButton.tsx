@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/lib/cart";
+import { usePreferences } from "@/lib/preferences";
 
 export function CartButton() {
   const { count, openCart, ready } = useCart();
+  const { t } = usePreferences();
   const [bump, setBump] = useState(false);
   const previous = useRef(0);
 
@@ -29,7 +31,7 @@ export function CartButton() {
       onClick={openCart}
       className="u-mono group relative border border-[var(--rule-strong)] px-4 py-2 text-cream transition-colors duration-300 hover:border-ochre hover:text-ochre"
     >
-      Basket
+      {t.nav.basket}
       <span
         aria-hidden
         className={`ml-2 inline-block tabular-nums transition-transform duration-300 ${
@@ -39,7 +41,7 @@ export function CartButton() {
         {ready ? count : 0}
       </span>
       <span className="sr-only">
-        {ready ? `${count} items in basket` : "basket"}
+        {ready ? t.nav.itemsInBasket(count) : t.nav.basket}
       </span>
     </button>
   );

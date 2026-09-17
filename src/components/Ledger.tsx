@@ -1,11 +1,14 @@
 import { namedProducts, liveProducts, SHIPS_TO } from "@/lib/catalog";
+import { getDict, type Locale } from "@/lib/i18n";
 
 /**
  * The spec strip from the tins ("100% Natural - Cold Pressed / Acidity <0.5%"),
  * promoted to a page band. Every figure is counted from the catalogue rather
  * than typed in, so it cannot drift out of date or overstate the range.
  */
-export function Ledger() {
+export function Ledger({ locale }: { locale: Locale }) {
+  const t = getDict(locale);
+
   const villages = new Set(
     liveProducts
       .flatMap((p) => p.spec)
@@ -14,14 +17,14 @@ export function Ledger() {
   );
 
   const facts = [
-    { figure: String(namedProducts.length), label: "Names" },
-    { figure: String(villages.size), label: "Villages" },
-    { figure: String(liveProducts.length), label: "Products" },
-    { figure: String(SHIPS_TO.length), label: "Countries" },
+    { figure: String(namedProducts.length), label: t.ledger.names },
+    { figure: String(villages.size), label: t.ledger.villages },
+    { figure: String(liveProducts.length), label: t.ledger.products },
+    { figure: String(SHIPS_TO.length), label: t.ledger.countries },
   ];
 
   return (
-    <section aria-label="Zuruny in figures" className="px-[var(--gutter)] py-20">
+    <section aria-label="Zuruny" className="px-[var(--gutter)] py-20">
       <div className="m-line h-px w-full bg-[var(--rule-strong)]" />
 
       <dl className="m-seq grid grid-cols-2 gap-x-6 gap-y-10 py-12 md:grid-cols-4">
@@ -40,10 +43,8 @@ export function Ledger() {
       <div className="m-line h-px w-full bg-[var(--rule)]" />
 
       <p className="m-rise u-measure mt-12 text-[length:var(--step-1)] leading-relaxed text-[var(--text-muted)]">
-        Zuruny is a small food and homeware brand in Beirut. The oil is pressed
-        by named families in named villages. The names on the tins belong to
-        somebody else entirely &mdash;{" "}
-        <span className="text-cream">our own</span>.
+        {t.ledger.blurbBefore}
+        <span className="text-cream">{t.ledger.blurbOwn}</span>.
       </p>
     </section>
   );

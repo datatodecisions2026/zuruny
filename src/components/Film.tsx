@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePreferences } from "@/lib/preferences";
 
 const FADE = 0.6; // seconds of dip at each end of the loop
 
@@ -18,6 +19,7 @@ const FADE = 0.6; // seconds of dip at each end of the loop
  * four times a second and would make the fade visibly step.
  */
 export function Film() {
+  const { t } = usePreferences();
   const videoRef = useRef<HTMLVideoElement>(null);
   const frameRef = useRef<number | undefined>(undefined);
 
@@ -74,7 +76,7 @@ export function Film() {
 
   return (
     <section
-      aria-label="Zuruny brand film"
+      aria-label={t.film.label}
       className="relative isolate overflow-hidden border-t border-[var(--rule)] bg-black"
     >
       <div className="relative aspect-video max-h-[80svh] w-full">
@@ -94,7 +96,7 @@ export function Film() {
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ground/70 via-transparent to-transparent" />
 
         <p className="u-mono absolute bottom-6 left-[var(--gutter)] text-cream/60">
-          Em Ramiz &middot; Aabra, South Lebanon
+          {t.film.caption}
         </p>
       </div>
     </section>

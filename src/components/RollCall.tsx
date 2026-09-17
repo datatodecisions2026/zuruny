@@ -7,9 +7,11 @@ import {
   isBuyable,
   unbuyableReason,
   formatUSD,
-  KIND_LABEL,
   type Product,
 } from "@/lib/catalog";
+import { getDict, localePath, type Locale } from "@/lib/i18n";
+import { descriptionFor, specFor } from "@/lib/catalog.fr";
+import { maybePriceForRegion, type Region } from "@/lib/region";
 
 /**
  * The spine of the site.
@@ -21,23 +23,30 @@ import {
  *
  * Each entry is one screen. Nothing pins, nothing hijacks.
  */
-export function RollCall() {
+export function RollCall({ locale, region }: { locale: Locale; region: Region }) {
+  const t = getDict(locale);
+
   return (
     <section id="names" className="scroll-mt-24">
       <header className="px-[var(--gutter)] pb-16 pt-8">
         <h2 className="m-rise u-display text-[length:var(--step-3)] text-cream">
-          The names
+          {t.names.title}
         </h2>
         <p className="m-rise u-measure mt-5 text-[var(--text-muted)]">
-          Four of them so far. The writing below is the founder&rsquo;s own,
-          reproduced exactly as it was given to us.
+          {t.names.sub}
         </p>
       </header>
 
       <ol>
         {namedProducts.map((product, i) => (
           <li key={product.handle}>
-            <NameEntry product={product} index={i} flip={i % 2 === 1} />
+            <NameEntry
+              product={product}
+              index={i}
+              flip={i % 2 === 1}
+              locale={locale}
+              region={region}
+            />
           </li>
         ))}
       </ol>
@@ -49,12 +58,17 @@ function NameEntry({
   product,
   index,
   flip,
+  locale,
+  region,
 }: {
   product: Product;
   index: number;
   flip: boolean;
+  locale: Locale;
+  region: Region;
 }) {
-  const price = fromPriceCents(product);
+  const t = getDict(locale);
+  const price = maybePriceForRegion(fromPriceCents(product), region);
   const buyable = isBuyable(product);
   const reason = unbuyableReason(product);
 
@@ -65,7 +79,7 @@ function NameEntry({
           {String(index + 1).padStart(2, "0")}
         </span>
         <span className="u-mono text-[var(--text-muted)]">
-          {KIND_LABEL[product.kind]}
+          {t.kinds[product.kind]}
         </span>
       </div>
 
@@ -74,7 +88,7 @@ function NameEntry({
           flip ? "lg:[&>*:first-child]:order-2" : ""
         }`}
       >
-        <Media product={product} />
+        <Media product={product} locale={locale} />
 
         <div>
           <KineticHeading
@@ -86,23 +100,32 @@ function NameEntry({
 
           {product.namedAfterFrom && (
             <p className="m-rise u-mono mt-4 text-ochre">
-              From {product.namedAfterFrom}
+              {t.names.from(product.namedAfterFrom)}
             </p>
           )}
 
           {product.memory && (
-            <blockquote className="m-rise u-memory u-measure mt-10 border-l border-[var(--rule-strong)] pl-6">
-              {product.memory}
-            </blockquote>
+            <div className="m-rise mt-10 border-l border-[var(--rule-strong)] pl-6">
+              <blockquote className="u-memory u-measure" lang="en">
+                {product.memory}
+              </blockquote>
+              {/* Her words, not ours. Flagged when the rest of the page is
+                  French so the switch of language is explained, not jarring. */}
+              {locale !== "en" && (
+                <p className="u-mono mt-4 text-[var(--text-faint)]">
+                  {t.names.inHerWords}
+                </p>
+              )}
+            </div>
           )}
 
           <p className="m-rise u-measure mt-10 text-[var(--text-muted)]">
-            {product.description}
+            {descriptionFor(product, locale)}
           </p>
 
           {product.spec.length > 0 && (
             <dl className="m-rise mt-10 grid gap-px border border-[var(--rule)] bg-[var(--rule)] sm:grid-cols-2">
-              {product.spec.map((s) => (
+              {specFor(product, locale).map((s) => (
                 <div key={s.label} className="bg-ground px-5 py-4">
                   <dt className="u-mono text-[var(--text-faint)]">{s.label}</dt>
                   <dd className="mt-1 text-cream">{s.value}</dd>
@@ -117,6 +140,7 @@ function NameEntry({
             reason={reason}
             handle={product.handle}
             name={product.name}
+            locale={locale}
           />
         </div>
       </div>
@@ -124,7 +148,8 @@ function NameEntry({
   );
 }
 
-function Media({ product }: { product: Product }) {
+function Media({ product, locale }: { product: Product; locale: Locale }) {
+  const t = getDict(locale);
   const [hero] = product.images;
 
   /* An honest empty state. The brief forbids substituting stock or unrelated
@@ -149,7 +174,7 @@ function Media({ product }: { product: Product }) {
         )}
 
         <figcaption className="u-mono text-cream/55">
-          Photography in progress
+          {t.product.photographyInProgress}
         </figcaption>
       </figure>
     );
@@ -188,18 +213,22 @@ function Buy({
   reason,
   handle,
   name,
+  locale,
 }: {
   price: number | null;
   buyable: boolean;
   reason: ReturnType<typeof unbuyableReason>;
   handle: string;
   name: string;
+  locale: Locale;
 }) {
+  const t = getDict(locale);
+
   return (
     <div className="m-rise mt-12 flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-[var(--rule)] pt-8">
       <p className="u-display text-[length:var(--step-2)] text-cream">
         {price === null ? (
-          <span className="text-[var(--text-faint)]">Price to come</span>
+          <span className="text-[var(--text-faint)]">{t.product.priceToCome}</span>
         ) : (
           formatUSD(price)
         )}
@@ -207,10 +236,10 @@ function Buy({
 
       {buyable ? (
         <Link
-          href={`/products/${handle}`}
+          href={localePath(locale, `/products/${handle}`)}
           className="group u-mono inline-flex items-center gap-3 bg-cream px-7 py-4 text-ground transition-colors duration-300 hover:bg-ochre"
         >
-          Buy {name}
+          {t.product.buy(name)}
           <span
             aria-hidden
             className="transition-transform duration-300 ease-[var(--ease-out-soft)] group-hover:translate-x-1"
@@ -220,10 +249,10 @@ function Buy({
         </Link>
       ) : (
         <Link
-          href={`/products/${handle}`}
+          href={localePath(locale, `/products/${handle}`)}
           className="u-mono border border-[var(--rule-strong)] px-7 py-4 text-[var(--text-muted)] transition-colors duration-300 hover:border-ochre hover:text-ochre"
         >
-          {reason === "no-price" ? "Not yet released" : "Out of stock"}
+          {reason === "no-price" ? t.product.notYetReleased : t.product.outOfStock}
         </Link>
       )}
     </div>

@@ -1,4 +1,8 @@
-export function SiteFooter() {
+import { getDict, type Locale } from "@/lib/i18n";
+
+export function SiteFooter({ locale }: { locale: Locale }) {
+  const t = getDict(locale);
+
   return (
     <footer className="relative isolate overflow-hidden bg-oxblood">
       {/* The damask gets exactly one contained panel — this one. IMAGES.txt
@@ -14,7 +18,7 @@ export function SiteFooter() {
               style={{ ["--emblem-src" as string]: "url(/brand/logo-lockup.png)" }}
             />
             <p className="u-display u-measure mt-8 text-[length:var(--step-2)] text-cream">
-              A piece of Lebanon, wherever you are.
+              {t.footer.tagline}
             </p>
           </div>
 
@@ -25,7 +29,7 @@ export function SiteFooter() {
             >
               hello@zuruny.co
             </a>
-            <p className="u-mono text-cream/55">Beirut, Lebanon</p>
+            <p className="u-mono text-cream/55">{t.footer.location}</p>
           </div>
         </div>
 
@@ -35,7 +39,7 @@ export function SiteFooter() {
           </p>
           {/* Stated plainly rather than discovered at a broken checkout. */}
           <p className="u-mono text-cream/50">
-            Online payment coming soon &middot; orders by email
+            {t.footer.payment}
           </p>
         </div>
       </div>

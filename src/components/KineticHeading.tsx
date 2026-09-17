@@ -29,7 +29,7 @@ export function KineticHeading({
   const words = text.split(" ");
   let charIndex = 0;
 
-  const children = words.map((word, w) => {
+  const children = words.flatMap((word, w) => {
     const chars = [...word].map((ch) => {
       const i = charIndex++;
       return (
@@ -42,14 +42,23 @@ export function KineticHeading({
         </span>
       );
     });
-    // Trailing space rides with the word so lines break normally.
-    charIndex++;
-    return (
+    charIndex++; // the space between words keeps its place in the stagger
+
+    const wordSpan = (
       <span key={w} className="inline-block whitespace-nowrap">
         {chars}
-        {w < words.length - 1 ? " " : ""}
       </span>
     );
+
+    /* The separator is a plain U+0020 and it sits BETWEEN the word spans,
+       never inside one. Both halves of that matter:
+       - Inside an inline-block, a trailing space is collapsed away and the
+         words render jammed together. That is why this was once a
+         non-breaking space.
+       - But NBSP is invisible in the markup and silently breaks find-in-page
+         and copy-paste on every heading.
+       Out here in normal flow a real space renders, wraps and copies. */
+    return w < words.length - 1 ? [wordSpan, " "] : [wordSpan];
   });
 
   return createElement(

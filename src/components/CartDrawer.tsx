@@ -4,10 +4,13 @@ import { useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/lib/cart";
+import { usePreferences } from "@/lib/preferences";
+import { localePath } from "@/lib/i18n";
 import { formatUSD } from "@/lib/catalog";
 
 export function CartDrawer() {
   const { isOpen, closeCart, lines, count, subtotalCents } = useCart();
+  const { locale, t } = usePreferences();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Close on Escape, and stop the page behind from scrolling while open.
@@ -37,7 +40,7 @@ export function CartDrawer() {
       <button
         type="button"
         tabIndex={isOpen ? 0 : -1}
-        aria-label="Close basket"
+        aria-label={t.cart.closeBasket}
         onClick={closeCart}
         className={`absolute inset-0 bg-black/70 transition-opacity duration-500 ${
           isOpen ? "opacity-100" : "opacity-0"
@@ -48,7 +51,7 @@ export function CartDrawer() {
         ref={panelRef}
         role="dialog"
         aria-modal={isOpen}
-        aria-label="Basket"
+        aria-label={t.nav.basket}
         tabIndex={-1}
         className={`absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-[var(--rule)] bg-ground transition-transform duration-500 ease-[var(--ease-out-soft)] ${
           isOpen ? "translate-x-0" : "translate-x-full"
@@ -56,14 +59,14 @@ export function CartDrawer() {
       >
         <header className="flex items-center justify-between border-b border-[var(--rule)] px-6 py-5">
           <h2 className="u-mono text-cream">
-            Basket{count > 0 ? ` (${count})` : ""}
+            {t.nav.basket}{count > 0 ? ` (${count})` : ""}
           </h2>
           <button
             type="button"
             onClick={closeCart}
             className="u-mono text-[var(--text-muted)] transition-colors duration-300 hover:text-cream"
           >
-            Close
+            {t.cart.close}
           </button>
         </header>
 
@@ -74,13 +77,13 @@ export function CartDrawer() {
               className="u-emblem size-12 text-[var(--text-faint)]"
               style={{ ["--emblem-src" as string]: "url(/brand/emblem.png)" }}
             />
-            <p className="text-[var(--text-muted)]">Your basket is empty.</p>
+            <p className="text-[var(--text-muted)]">{t.cart.emptyDrawer}</p>
             <Link
-              href="/shop"
+              href={localePath(locale, "/shop")}
               onClick={closeCart}
               className="u-mono border border-[var(--rule-strong)] px-6 py-3 text-cream transition-colors duration-300 hover:border-ochre hover:text-ochre"
             >
-              Browse the shop
+              {t.cart.browseShop}
             </Link>
           </div>
         ) : (
@@ -93,20 +96,20 @@ export function CartDrawer() {
 
             <footer className="border-t border-[var(--rule)] px-6 py-6">
               <div className="flex items-baseline justify-between">
-                <span className="u-mono text-[var(--text-muted)]">Subtotal</span>
+                <span className="u-mono text-[var(--text-muted)]">{t.cart.subtotal}</span>
                 <span className="u-display text-[length:var(--step-2)] text-cream">
                   {formatUSD(subtotalCents)}
                 </span>
               </div>
               <p className="u-mono mt-2 text-[var(--text-faint)]">
-                Shipping calculated by email
+                {t.cart.shippingCalculated}
               </p>
               <Link
-                href="/cart"
+                href={localePath(locale, "/cart")}
                 onClick={closeCart}
                 className="u-mono mt-6 block bg-cream px-7 py-4 text-center text-ground transition-colors duration-300 hover:bg-ochre"
               >
-                Review order
+                {t.cart.reviewOrder}
               </Link>
             </footer>
           </>
@@ -122,6 +125,7 @@ function CartRow({
   line: ReturnType<typeof useCart>["lines"][number];
 }) {
   const { setQty, remove } = useCart();
+  const { locale, t } = usePreferences();
   const image = line.product.images[0];
 
   return (
@@ -148,7 +152,7 @@ function CartRow({
         <div className="flex items-start justify-between gap-3">
           <div>
             <Link
-              href={`/products/${line.product.handle}`}
+              href={localePath(locale, `/products/${line.product.handle}`)}
               className="u-display text-[length:var(--step-1)] text-cream transition-colors duration-300 hover:text-ochre"
             >
               {line.product.name}
@@ -166,7 +170,7 @@ function CartRow({
 
         {line.clamped && (
           <p className="u-mono mt-2 text-ochre">
-            Reduced to {line.qty} — stock changed
+            {t.cart.reducedTo(line.qty)}
           </p>
         )}
 
@@ -174,7 +178,7 @@ function CartRow({
           <div className="flex items-stretch border border-[var(--rule)]">
             <button
               type="button"
-              aria-label={`Decrease quantity of ${line.product.name}`}
+              aria-label={t.product.decrease(line.product.name)}
               onClick={() => setQty(line.key, line.qty - 1)}
               className="px-3 py-1 text-cream transition-colors hover:text-ochre"
             >
@@ -185,7 +189,7 @@ function CartRow({
             </span>
             <button
               type="button"
-              aria-label={`Increase quantity of ${line.product.name}`}
+              aria-label={t.product.increase(line.product.name)}
               onClick={() => setQty(line.key, line.qty + 1)}
               disabled={line.qty >= line.variant.stock}
               className="px-3 py-1 text-cream transition-colors hover:text-ochre disabled:text-[var(--text-faint)]"
@@ -199,7 +203,7 @@ function CartRow({
             onClick={() => remove(line.key)}
             className="u-mono text-[var(--text-faint)] underline-offset-4 transition-colors duration-300 hover:text-cream hover:underline"
           >
-            Remove
+            {t.cart.remove}
           </button>
         </div>
       </div>

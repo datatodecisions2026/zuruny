@@ -15,6 +15,8 @@ import {
   type Product,
   type Variant,
 } from "@/lib/catalog";
+import { usePreferences } from "@/lib/preferences";
+import { priceForRegion } from "@/lib/region";
 
 /**
  * Cart state.
@@ -130,6 +132,7 @@ type CartContextValue = {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
+  const { region } = usePreferences();
   const [{ lines: rawLines, ready }, dispatch] = useReducer(reducer, {
     lines: [],
     ready: false,
@@ -202,19 +205,23 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       const qty = Math.max(1, Math.min(line.qty, variant.stock));
       if (variant.stock <= 0) return [];
 
+      // Priced for the visitor's delivery region, from the same helper the
+      // product pages use, so the basket can never disagree with them.
+      const unit = priceForRegion(variant.priceCents, region);
+
       return [
         {
           key: lineKey(product.handle, variant.label),
           product,
           variant,
           qty,
-          unitPriceCents: variant.priceCents,
-          lineTotalCents: variant.priceCents * qty,
+          unitPriceCents: unit,
+          lineTotalCents: unit * qty,
           clamped: qty !== line.qty,
         },
       ];
     });
-  }, [rawLines]);
+  }, [rawLines, region]);
 
   const count = useMemo(
     () => lines.reduce((sum, l) => sum + l.qty, 0),
@@ -264,6 +271,13 @@ export function useCart(): CartContextValue {
 export function orderSummary(
   lines: ResolvedLine[],
   subtotalCents: number,
+  labels: {
+    intro: string;
+    subtotal: string;
+    address: string;
+    region: (r: string) => string;
+  },
+  regionName: string,
 ): string {
   const rows = lines.map((l) => {
     const name = l.variant.label
@@ -272,13 +286,14 @@ export function orderSummary(
     return `${l.qty} x ${name} — ${formatUSD(l.lineTotalCents)}`;
   });
   return [
-    "I would like to order:",
+    labels.intro,
     "",
     ...rows,
     "",
-    `Subtotal: ${formatUSD(subtotalCents)}`,
+    `${labels.subtotal}: ${formatUSD(subtotalCents)}`,
+    labels.region(regionName),
     "",
-    "Shipping address:",
+    labels.address,
     "",
   ].join("\n");
 }

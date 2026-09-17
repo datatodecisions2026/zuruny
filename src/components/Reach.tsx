@@ -1,11 +1,14 @@
 import { SHIPS_TO } from "@/lib/catalog";
+import { getDict, type Locale } from "@/lib/i18n";
 
 /**
  * Most sites bury shipping reach in the footer as a sentence. For a brand
  * whose audience is a diaspora, the list of countries *is* the message — so
  * it gets a section, and every name arrives on its own beat.
  */
-export function Reach() {
+export function Reach({ locale }: { locale: Locale }) {
+  const t = getDict(locale);
+
   return (
     <section
       id="reach"
@@ -14,11 +17,10 @@ export function Reach() {
       <div className="u-sprig absolute inset-0 -z-10" aria-hidden />
 
       <h2 className="m-rise u-display u-measure text-[length:var(--step-3)] text-cream">
-        We ship to {SHIPS_TO.length} countries.
+        {t.reach.title(SHIPS_TO.length)}
       </h2>
       <p className="m-rise u-measure mt-5 text-[var(--text-muted)]">
-        Most orders leave Beirut for a kitchen a long way from it. Prices are in
-        US dollars.
+        {t.reach.sub}
       </p>
 
       <ul className="m-seq mt-16 flex flex-wrap gap-x-3 gap-y-4">

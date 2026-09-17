@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Image from "next/image";
 import type { Product } from "@/lib/catalog";
+import { usePreferences } from "@/lib/preferences";
 
 export function ProductGallery({ product }: { product: Product }) {
+  const { t } = usePreferences();
   const [active, setActive] = useState(0);
   const images = product.images;
 
@@ -21,10 +23,7 @@ export function ProductGallery({ product }: { product: Product }) {
             &ldquo;{product.pullQuote}&rdquo;
           </p>
         )}
-        <p className="u-mono text-cream/55">
-          No photograph yet &middot; we would rather show nothing than something
-          that is not this
-        </p>
+        <p className="u-mono text-cream/55">{t.product.noPhotoLong}</p>
       </div>
     );
   }
@@ -64,7 +63,7 @@ export function ProductGallery({ product }: { product: Product }) {
               <button
                 type="button"
                 onClick={() => setActive(i)}
-                aria-label={`Show image ${i + 1} of ${images.length}`}
+                aria-label={t.product.showImage(i + 1, images.length)}
                 aria-current={i === active}
                 className={`relative block size-20 overflow-hidden border transition-[border-color,transform] duration-300 ease-[var(--ease-out-soft)] hover:-translate-y-1 ${
                   i === active ? "border-ochre" : "border-[var(--rule)]"

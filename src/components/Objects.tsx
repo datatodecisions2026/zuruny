@@ -2,13 +2,17 @@ import Link from "next/link";
 import { ProductCard } from "@/components/ProductCard";
 import { KineticHeading } from "@/components/KineticHeading";
 import { objectProducts } from "@/lib/catalog";
+import { getDict, localePath, type Locale } from "@/lib/i18n";
+import type { Region } from "@/lib/region";
 
 /**
  * The made things — carafes and cedar. No memory attached to these, and the
  * site should not pretend otherwise, so they get a different grammar from the
  * roll call: tighter, gridded, more shop than story.
  */
-export function Objects() {
+export function Objects({ locale, region }: { locale: Locale; region: Region }) {
+  const t = getDict(locale);
+
   return (
     <section
       id="objects"
@@ -18,26 +22,25 @@ export function Objects() {
         <div>
           <KineticHeading
             mode="scroll"
-            text="Objects"
+            text={t.objects.title}
             className="u-display text-[length:var(--step-3)] text-cream"
           />
           <p className="m-rise u-measure mt-5 text-[var(--text-muted)]">
-            Ceramics thrown for the table, and a coaster cut from Lebanese
-            cedar in the shape of our mark.
+            {t.objects.sub}
           </p>
         </div>
         <Link
-          href="/shop"
+          href={localePath(locale, "/shop")}
           className="m-rise u-mono u-underline text-[var(--text-muted)] transition-colors duration-300 hover:text-cream"
         >
-          See all {objectProducts.length} &rarr;
+          {t.objects.seeAll(objectProducts.length)}
         </Link>
       </header>
 
       <ul className="m-seq grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3">
         {objectProducts.map((product, i) => (
           <li key={product.handle} style={{ ["--i" as string]: i }}>
-            <ProductCard product={product} />
+            <ProductCard product={product} locale={locale} region={region} />
           </li>
         ))}
       </ul>

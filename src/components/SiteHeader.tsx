@@ -1,13 +1,24 @@
 import Link from "next/link";
 import { CartButton } from "@/components/CartButton";
+import { LanguageSwitch, RegionSwitch } from "@/components/PreferenceSwitches";
+import { getDict, localePath, type Locale } from "@/lib/i18n";
+import type { Region } from "@/lib/region";
 
-const NAV = [
-  { href: "/shop", label: "Shop" },
-  { href: "/#names", label: "The names" },
-  { href: "/#reach", label: "Shipping" },
-];
+export function SiteHeader({
+  locale,
+  region,
+}: {
+  locale: Locale;
+  region: Region;
+}) {
+  const t = getDict(locale);
 
-export function SiteHeader() {
+  const nav = [
+    { href: localePath(locale, "/shop"), label: t.nav.shop },
+    { href: localePath(locale, "/#names"), label: t.nav.theNames },
+    { href: localePath(locale, "/#reach"), label: t.nav.shipping },
+  ];
+
   return (
     <header className="fixed inset-x-0 top-0 z-40">
       {/* The page's own read-progress. Driven by scroll(root), so it costs
@@ -19,15 +30,15 @@ export function SiteHeader() {
       {/* Gradient only, no backdrop-blur: the filter applies across the whole
           box while the gradient fades, which leaves a hard seam straight
           across the hero photograph. */}
-      <div className="bg-gradient-to-b from-ground via-ground/80 to-transparent pb-6">
+      <div className="bg-gradient-to-b from-ground via-ground/80 to-transparent pb-5">
         <nav
-          aria-label="Primary"
-          className="mx-auto flex items-center justify-between gap-6 px-[var(--gutter)] py-5"
+          aria-label={t.nav.primary}
+          className="mx-auto flex items-center justify-between gap-6 px-[var(--gutter)] py-4"
         >
           <Link
-            href="/"
+            href={localePath(locale, "/")}
             className="group flex items-center gap-3"
-            aria-label="Zuruny — home"
+            aria-label={t.nav.home}
           >
             <span
               aria-hidden
@@ -38,8 +49,8 @@ export function SiteHeader() {
           </Link>
 
           <div className="flex items-center gap-6">
-            <ul className="hidden items-center gap-6 sm:flex">
-              {NAV.map((item) => (
+            <ul className="hidden items-center gap-6 lg:flex">
+              {nav.map((item) => (
                 <li key={item.href}>
                   <Link
                     href={item.href}
@@ -50,25 +61,58 @@ export function SiteHeader() {
                 </li>
               ))}
             </ul>
+
+            <div className="hidden items-center gap-4 sm:flex">
+              <RegionSwitch />
+              <span aria-hidden className="text-[var(--rule-strong)]">
+                |
+              </span>
+              <LanguageSwitch />
+            </div>
+
             <CartButton />
           </div>
         </nav>
 
-        {/* Below `sm` the inline list is hidden, so the same links get a slim
-            second row. A hamburger would hide the shop behind a tap on a site
-            with three destinations. */}
-        <ul className="flex items-center gap-5 px-[var(--gutter)] pb-1 sm:hidden">
-          {NAV.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className="u-mono u-underline text-[var(--text-muted)] transition-colors duration-300 hover:text-cream"
-              >
-                {item.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {/* Below `lg` the inline list is hidden, so the same links get their
+            own row. A hamburger would hide the shop behind a tap on a site
+            with three destinations. These stack rather than sharing a row:
+            side by side at 390px they collide. */}
+        <div className="flex flex-col gap-2 px-[var(--gutter)] pb-1 lg:hidden">
+          <ul className="flex flex-wrap items-center gap-x-5 gap-y-1">
+            {nav.map((item) => (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="u-mono u-underline text-[var(--text-muted)] transition-colors duration-300 hover:text-cream"
+                >
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+
+          {/* Only below `sm` — at `sm` and up these sit in the row above. */}
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:hidden">
+            <span className="u-mono text-[var(--text-faint)]">
+              {t.region.label}
+            </span>
+            <RegionSwitch />
+            <span aria-hidden className="text-[var(--rule-strong)]">
+              |
+            </span>
+            <LanguageSwitch />
+          </div>
+        </div>
+
+        {/* Says which prices are on screen, in words, rather than leaving the
+            visitor to work out why a tin costs what it costs. Hidden on the
+            narrowest screens, where it wraps to two lines and pushes a fixed
+            header over the page beneath it; the labelled switch carries the
+            same meaning there. */}
+        <p className="u-mono hidden px-[var(--gutter)] pt-2 text-[var(--text-faint)] sm:block">
+          {region === "LB" ? t.region.lbNote : t.region.intlNote}
+        </p>
       </div>
     </header>
   );

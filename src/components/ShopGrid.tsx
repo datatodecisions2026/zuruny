@@ -2,17 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
+import { usePreferences } from "@/lib/preferences";
 import { type Product, type ProductKind } from "@/lib/catalog";
 
 type Filter = "all" | ProductKind | "molasses";
-
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "Everything" },
-  { id: "olive-oil", label: "Olive oil" },
-  { id: "molasses", label: "Molasses" },
-  { id: "carafe", label: "Carafes" },
-  { id: "coaster", label: "Cedar" },
-];
 
 function matches(product: Product, filter: Filter): boolean {
   if (filter === "all") return true;
@@ -25,7 +18,16 @@ function matches(product: Product, filter: Filter): boolean {
 }
 
 export function ShopGrid({ products }: { products: Product[] }) {
+  const { locale, region, t } = usePreferences();
   const [filter, setFilter] = useState<Filter>("all");
+
+  const filters: { id: Filter; label: string }[] = [
+    { id: "all", label: t.shop.everything },
+    { id: "olive-oil", label: t.shop.oliveOil },
+    { id: "molasses", label: t.shop.molasses },
+    { id: "carafe", label: t.shop.carafes },
+    { id: "coaster", label: t.shop.cedar },
+  ];
 
   const shown = useMemo(
     () => products.filter((p) => matches(p, filter)),
@@ -34,8 +36,8 @@ export function ShopGrid({ products }: { products: Product[] }) {
 
   const counts = useMemo(() => {
     const map = new Map<Filter, number>();
-    for (const f of FILTERS) {
-      map.set(f.id, products.filter((p) => matches(p, f.id)).length);
+    for (const f of ["all", "olive-oil", "molasses", "carafe", "coaster"] as Filter[]) {
+      map.set(f, products.filter((p) => matches(p, f)).length);
     }
     return map;
   }, [products]);
@@ -44,10 +46,10 @@ export function ShopGrid({ products }: { products: Product[] }) {
     <>
       <div
         role="group"
-        aria-label="Filter products"
+        aria-label={t.shop.filterLabel}
         className="m-cascade flex flex-wrap gap-3 border-y border-[var(--rule)] py-6"
       >
-        {FILTERS.map((f, i) => {
+        {filters.map((f, i) => {
           const active = filter === f.id;
           const n = counts.get(f.id) ?? 0;
           return (
@@ -76,17 +78,17 @@ export function ShopGrid({ products }: { products: Product[] }) {
           silently swapping underneath. */}
       <ul
         key={filter}
-        className="m-cascade mt-16 grid gap-x-8 gap-y-16 sm:grid-cols-2 lg:grid-cols-3"
+        className="m-cascade mt-16 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
       >
         {shown.map((product, i) => (
           <li key={product.handle} style={{ ["--i" as string]: i }}>
-            <ProductCard product={product} />
+            <ProductCard product={product} locale={locale} region={region} />
           </li>
         ))}
       </ul>
 
       <p className="u-mono mt-16 text-[var(--text-faint)]" aria-live="polite">
-        Showing {shown.length} of {products.length}
+        {t.shop.showing(shown.length, products.length)}
       </p>
     </>
   );
