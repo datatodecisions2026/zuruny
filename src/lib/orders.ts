@@ -14,13 +14,16 @@ export type PlacedOrder = {
   reference: string;
   subtotalCents: number;
   region: Region;
+  /* Taken from the authenticated session, never from the form — the payment
+     receipt must go to the account that placed the order. */
+  email: string;
 };
 
 export type OrderResult =
   | { ok: true; order: PlacedOrder }
   | { ok: false; error: "not-configured" | "not-signed-in" | "empty" | "unavailable" | "failed" };
 
-/** A short, human-readable reference the customer and Whish both quote. */
+/** A short, human-readable reference the customer and Paystack both quote. */
 function newReference(): string {
   const now = new Date();
   const stamp =
@@ -165,7 +168,10 @@ export async function placeOrder(input: {
     return { ok: false, error: "failed" };
   }
 
-  return { ok: true, order: { reference, subtotalCents, region } };
+  return {
+    ok: true,
+    order: { reference, subtotalCents, region, email: user.email ?? "" },
+  };
 }
 
 export type OrderSummaryRow = {

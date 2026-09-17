@@ -5,9 +5,16 @@ import Link from "next/link";
 import { useCart, orderSummary } from "@/lib/cart";
 import { usePreferences } from "@/lib/preferences";
 import { localePath } from "@/lib/i18n";
+import { CheckoutButton } from "@/components/CheckoutButton";
 import { formatUSD, SHIPS_TO } from "@/lib/catalog";
 
-export function CartView() {
+export function CartView({
+  paymentLive,
+  signedIn,
+}: {
+  paymentLive: boolean;
+  signedIn: boolean;
+}) {
   const { lines, count, subtotalCents, setQty, remove, clear, ready } =
     useCart();
   const { locale, region, t } = usePreferences();
@@ -163,15 +170,11 @@ export function CartView() {
                   order is handed to a person rather than to a checkout that
                   would dead-end at the last step. */}
               <div className="mt-7 border-t border-[var(--rule)] pt-6">
-                <p className="text-[length:var(--step--1)] leading-relaxed text-[var(--text-muted)]">
-                  {t.cart.paymentNotice}
-                </p>
-                <a
-                  href={mailto}
-                  className="u-mono mt-6 block bg-cream px-7 py-4 text-center text-ground transition-colors duration-300 hover:bg-ochre"
-                >
-                  {t.cart.sendOrder}
-                </a>
+                <CheckoutButton
+                  paymentLive={paymentLive}
+                  signedIn={signedIn}
+                  mailto={mailto}
+                />
                 <button
                   type="button"
                   onClick={clear}

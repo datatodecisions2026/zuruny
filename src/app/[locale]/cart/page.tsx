@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CartView } from "@/components/CartView";
 import { getDict, isLocale } from "@/lib/i18n";
+import { paystackConfigured } from "@/lib/paystack";
+import { getSessionUser } from "@/lib/auth";
 
 export async function generateMetadata({
   params,
@@ -20,5 +22,9 @@ export default async function CartPage({
 }) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  return <CartView />;
+
+  const user = await getSessionUser();
+  return (
+    <CartView paymentLive={paystackConfigured()} signedIn={Boolean(user)} />
+  );
 }

@@ -181,6 +181,27 @@ const en = {
     notConfigured:
       "Accounts are not switched on yet. Orders still reach us by email.",
   },
+  order: {
+    thanksTitle: "Thank you.",
+    thanksBody:
+      "Your payment has gone through. We will email you when it ships from Beirut.",
+    pendingTitle: "Payment not completed",
+    pendingBody:
+      "We have kept your order. Nothing has been charged, and you can pay from your account page.",
+    notFoundTitle: "Order not found",
+    notFoundBody:
+      "We could not find that order on your account. If you have just paid, sign in with the address you used.",
+    checkout: "Pay now",
+    checkingOut: "Opening payment…",
+    signInToOrder: "Sign in to order",
+    signInWhy:
+      "Orders live on an account so you can see them afterwards, and so we can tell you when they ship.",
+    failed: "We could not start that payment. Nothing has been charged.",
+    unavailable:
+      "Something in your basket has just sold out. Check it and try again.",
+    notLive:
+      "Card payment is not switched on yet. Send this basket by email and we will reply with a way to pay.",
+  },
   admin: {
     title: "Admin",
     products: "Products",
@@ -368,6 +389,27 @@ const fr: typeof en = {
       "Un compte vous permet de suivre une commande après l'avoir passée : ce que vous avez commandé, le montant, et où elle en est.",
     notConfigured:
       "Les comptes ne sont pas encore activés. Les commandes nous parviennent toujours par e-mail.",
+  },
+  order: {
+    thanksTitle: "Merci.",
+    thanksBody:
+      "Votre paiement est passé. Nous vous écrirons au départ du colis de Beyrouth.",
+    pendingTitle: "Paiement non finalisé",
+    pendingBody:
+      "Nous avons conservé votre commande. Rien n'a été débité, et vous pouvez payer depuis votre compte.",
+    notFoundTitle: "Commande introuvable",
+    notFoundBody:
+      "Nous ne trouvons pas cette commande sur votre compte. Si vous venez de payer, connectez-vous avec l'adresse utilisée.",
+    checkout: "Payer maintenant",
+    checkingOut: "Ouverture du paiement…",
+    signInToOrder: "Se connecter pour commander",
+    signInWhy:
+      "Les commandes sont liées à un compte pour que vous puissiez les suivre, et pour que nous puissions vous prévenir de l'expédition.",
+    failed: "Nous n'avons pas pu lancer le paiement. Rien n'a été débité.",
+    unavailable:
+      "Un article de votre panier vient d'être épuisé. Vérifiez-le et réessayez.",
+    notLive:
+      "Le paiement par carte n'est pas encore activé. Envoyez ce panier par e-mail et nous vous répondrons avec un moyen de paiement.",
   },
   admin: {
     title: "Administration",
