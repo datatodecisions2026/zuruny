@@ -9,12 +9,7 @@ import {
   useReducer,
   useState,
 } from "react";
-import {
-  products,
-  formatUSD,
-  type Product,
-  type Variant,
-} from "@/lib/catalog";
+import { formatUSD, type Product, type Variant } from "@/lib/catalog";
 import { usePreferences } from "@/lib/preferences";
 import { priceForRegion } from "@/lib/region";
 
@@ -131,7 +126,16 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
-export function CartProvider({ children }: { children: React.ReactNode }) {
+export function CartProvider({
+  products,
+  children,
+}: {
+  /* Handed down from the server layout, which reads the live catalogue from
+     the database. The basket must price against the same rows the product
+     pages do, so it cannot keep its own copy. */
+  products: Product[];
+  children: React.ReactNode;
+}) {
   const { region } = usePreferences();
   const [{ lines: rawLines, ready }, dispatch] = useReducer(reducer, {
     lines: [],
@@ -221,7 +225,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         },
       ];
     });
-  }, [rawLines, region]);
+  }, [rawLines, region, products]);
 
   const count = useMemo(
     () => lines.reduce((sum, l) => sum + l.qty, 0),

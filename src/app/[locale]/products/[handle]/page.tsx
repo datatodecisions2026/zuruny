@@ -6,17 +6,15 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { ProductCard } from "@/components/ProductCard";
 import { AddToCart } from "@/components/AddToCart";
 import { KineticHeading } from "@/components/KineticHeading";
-import { liveProducts, fromPriceCents, formatUSD, SHIPS_TO } from "@/lib/catalog";
+import { fromPriceCents, formatUSD, SHIPS_TO } from "@/lib/catalog";
+import { getLiveProducts, getProduct } from "@/lib/products";
 import { descriptionFor, specFor } from "@/lib/catalog.fr";
-import { getDict, isLocale, localePath, LOCALES } from "@/lib/i18n";
+import { getDict, isLocale, localePath } from "@/lib/i18n";
 import { REGION_HEADER, isRegion, maybePriceForRegion, type Region } from "@/lib/region";
 
-/** Only active products get a page. Drafts 404 rather than leaking. */
-export function generateStaticParams() {
-  return LOCALES.flatMap((locale) =>
-    liveProducts.map((p) => ({ locale, handle: p.handle })),
-  );
-}
+/* No generateStaticParams: the catalogue is editable now, so the set of
+   product pages changes at runtime. Rendering on demand means a product
+   published in the admin is reachable immediately. */
 
 export async function generateMetadata({
   params,
@@ -24,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ locale: string; handle: string }>;
 }): Promise<Metadata> {
   const { locale, handle } = await params;
-  const product = liveProducts.find((p) => p.handle === handle);
+  const product = await getProduct(handle);
   if (!product || !isLocale(locale)) return { title: "Not found" };
 
   return {
@@ -46,7 +44,7 @@ export default async function ProductPage({
   const { locale, handle } = await params;
   if (!isLocale(locale)) notFound();
 
-  const product = liveProducts.find((p) => p.handle === handle);
+  const product = await getProduct(handle);
   if (!product) notFound();
 
   const t = getDict(locale);
@@ -55,7 +53,7 @@ export default async function ProductPage({
 
   const price = maybePriceForRegion(fromPriceCents(product), region);
   const spec = specFor(product, locale);
-  const related = liveProducts
+  const related = (await getLiveProducts())
     .filter((p) => p.handle !== product.handle)
     .slice(0, 4);
 

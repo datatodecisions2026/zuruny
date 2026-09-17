@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { KineticHeading } from "@/components/KineticHeading";
 import {
-  namedProducts,
   fromPriceCents,
   isBuyable,
   unbuyableReason,
@@ -23,7 +22,15 @@ import { maybePriceForRegion, type Region } from "@/lib/region";
  *
  * Each entry is one screen. Nothing pins, nothing hijacks.
  */
-export function RollCall({ locale, region }: { locale: Locale; region: Region }) {
+export function RollCall({
+  locale,
+  region,
+  products,
+}: {
+  locale: Locale;
+  region: Region;
+  products: Product[];
+}) {
   const t = getDict(locale);
 
   return (
@@ -38,7 +45,7 @@ export function RollCall({ locale, region }: { locale: Locale; region: Region })
       </header>
 
       <ol>
-        {namedProducts.map((product, i) => (
+        {products.map((product, i) => (
           <li key={product.handle}>
             <NameEntry
               product={product}

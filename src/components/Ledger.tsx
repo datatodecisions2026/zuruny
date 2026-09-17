@@ -1,4 +1,4 @@
-import { namedProducts, liveProducts, SHIPS_TO } from "@/lib/catalog";
+import { SHIPS_TO, type Product } from "@/lib/catalog";
 import { getDict, type Locale } from "@/lib/i18n";
 
 /**
@@ -6,20 +6,28 @@ import { getDict, type Locale } from "@/lib/i18n";
  * promoted to a page band. Every figure is counted from the catalogue rather
  * than typed in, so it cannot drift out of date or overstate the range.
  */
-export function Ledger({ locale }: { locale: Locale }) {
+export function Ledger({
+  locale,
+  live,
+  named,
+}: {
+  locale: Locale;
+  live: Product[];
+  named: Product[];
+}) {
   const t = getDict(locale);
 
   const villages = new Set(
-    liveProducts
+    live
       .flatMap((p) => p.spec)
       .filter((s) => s.label === "Village")
       .map((s) => s.value),
   );
 
   const facts = [
-    { figure: String(namedProducts.length), label: t.ledger.names },
+    { figure: String(named.length), label: t.ledger.names },
     { figure: String(villages.size), label: t.ledger.villages },
-    { figure: String(liveProducts.length), label: t.ledger.products },
+    { figure: String(live.length), label: t.ledger.products },
     { figure: String(SHIPS_TO.length), label: t.ledger.countries },
   ];
 

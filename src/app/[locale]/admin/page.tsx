@@ -5,6 +5,7 @@ import { getSessionUser } from "@/lib/auth";
 import { getSupabaseServer } from "@/lib/supabase/server";
 import { getDict, isLocale, localePath } from "@/lib/i18n";
 import { formatUSD } from "@/lib/catalog";
+import { AdminProducts, type AdminProduct } from "@/components/AdminProducts";
 
 export const dynamic = "force-dynamic";
 
@@ -63,7 +64,10 @@ export default async function AdminPage({
 
   const { data: products } = (await supabase
     ?.from("zuruny_products")
-    .select("handle, name, status, kind, zuruny_variants(label, price_cents, stock, available)")
+    .select(
+      "id, handle, name, status, kind, description, description_fr, " +
+        "zuruny_variants(id, label, price_cents, stock, available, position)",
+    )
     .order("position")) ?? { data: null };
 
   const { data: orders } = (await supabase
@@ -73,15 +77,20 @@ export default async function AdminPage({
     .limit(25)) ?? { data: null };
 
   type ProductRow = {
+    id: number;
     handle: string;
     name: string;
     status: string;
     kind: string;
+    description: string;
+    description_fr: string | null;
     zuruny_variants: {
+      id: number;
       label: string | null;
       price_cents: number | null;
       stock: number;
       available: boolean;
+      position: number;
     }[];
   };
   type OrderRow = {
@@ -94,6 +103,25 @@ export default async function AdminPage({
   };
 
   const productRows = (products as ProductRow[] | null) ?? [];
+
+  /* Flattened onto the first variant. Multi-size products (Najibe, Mimi) keep
+     every variant in the database; this editor edits the first, which is what
+     the single-size products the owner actually sells need today. */
+  const editable: AdminProduct[] = productRows.map((p) => {
+    const first = [...p.zuruny_variants].sort((a, b) => a.position - b.position)[0];
+    return {
+      id: p.id,
+      handle: p.handle,
+      name: p.name,
+      kind: p.kind,
+      status: p.status,
+      description: p.description ?? "",
+      descriptionFr: p.description_fr ?? "",
+      variantId: first?.id ?? null,
+      priceCents: first?.price_cents ?? null,
+      stock: first?.stock ?? 0,
+    };
+  });
   const orderRows = (orders as OrderRow[] | null) ?? [];
 
   return (
@@ -146,44 +174,10 @@ export default async function AdminPage({
         <h2 className="u-display mb-6 text-[length:var(--step-2)] text-cream">
           {t.admin.products}
         </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[40rem] border-collapse">
-            <thead>
-              <tr className="border-b border-[var(--rule-strong)] text-left">
-                <Th>{t.admin.products}</Th>
-                <Th>{t.admin.status}</Th>
-                <Th>{t.admin.price}</Th>
-                <Th>{t.admin.stock}</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {productRows.map((p) =>
-                p.zuruny_variants.map((v, i) => (
-                  <tr
-                    key={`${p.handle}-${v.label ?? i}`}
-                    className="border-b border-[var(--rule)]"
-                  >
-                    <Td>
-                      {p.name}
-                      {v.label ? ` · ${v.label}` : ""}
-                    </Td>
-                    <Td mono>{p.status}</Td>
-                    <Td>
-                      {v.price_cents === null ? (
-                        <span className="text-[var(--text-faint)]">&mdash;</span>
-                      ) : (
-                        formatUSD(v.price_cents)
-                      )}
-                    </Td>
-                    <Td mono>{v.available ? v.stock : 0}</Td>
-                  </tr>
-                )),
-              )}
-            </tbody>
-          </table>
-        </div>
+        <AdminProducts products={editable} />
         <p className="u-mono mt-6 text-[var(--text-faint)]">
-          Prices are the Lebanon base. International is calculated at checkout.
+          Prices are the Lebanon base. International is calculated at checkout
+          at 2.5&times;.
         </p>
       </section>
     </main>

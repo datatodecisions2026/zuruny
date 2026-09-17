@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ShopGrid } from "@/components/ShopGrid";
 import { KineticHeading } from "@/components/KineticHeading";
-import { liveProducts, isBuyable, SHIPS_TO } from "@/lib/catalog";
+import { isBuyable, SHIPS_TO } from "@/lib/catalog";
+import { getLiveProducts } from "@/lib/products";
 import { getDict, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata({
@@ -13,12 +14,10 @@ export async function generateMetadata({
   const { locale } = await params;
   if (!isLocale(locale)) return {};
   const t = getDict(locale);
+  const live = await getLiveProducts();
   return {
     title: t.shop.title,
-    description: t.shop.sub(
-      liveProducts.length,
-      liveProducts.filter(isBuyable).length,
-    ),
+    description: t.shop.sub(live.length, live.filter(isBuyable).length),
   };
 }
 
@@ -31,7 +30,8 @@ export default async function ShopPage({
   if (!isLocale(locale)) notFound();
 
   const t = getDict(locale);
-  const inStock = liveProducts.filter(isBuyable).length;
+  const live = await getLiveProducts();
+  const inStock = live.filter(isBuyable).length;
 
   return (
     <main
@@ -45,14 +45,14 @@ export default async function ShopPage({
           className="u-display text-[length:var(--step-4)] text-cream"
         />
         <p className="m-intro-item u-measure mt-6 text-[length:var(--step-1)] leading-relaxed text-[var(--text-muted)]">
-          {t.shop.sub(liveProducts.length, inStock)}
+          {t.shop.sub(live.length, inStock)}
         </p>
         <p className="m-intro-item u-mono mt-6 text-[var(--text-faint)]">
           {t.shop.meta(SHIPS_TO.length)}
         </p>
       </header>
 
-      <ShopGrid products={liveProducts} />
+      <ShopGrid products={live} />
     </main>
   );
 }

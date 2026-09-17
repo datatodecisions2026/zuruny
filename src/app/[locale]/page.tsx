@@ -8,6 +8,11 @@ import { Film } from "@/components/Film";
 import { Objects } from "@/components/Objects";
 import { Reach } from "@/components/Reach";
 import { isLocale } from "@/lib/i18n";
+import {
+  getLiveProducts,
+  getNamedProducts,
+  getObjectProducts,
+} from "@/lib/products";
 import { REGION_HEADER, isRegion, type Region } from "@/lib/region";
 
 /**
@@ -26,14 +31,20 @@ export default async function HomePage({
   const headerRegion = (await headers()).get(REGION_HEADER);
   const region: Region = isRegion(headerRegion) ? headerRegion : "INTL";
 
+  const [live, named, objects] = await Promise.all([
+    getLiveProducts(),
+    getNamedProducts(),
+    getObjectProducts(),
+  ]);
+
   return (
     <main id="main">
       <Hero locale={locale} />
-      <Ledger locale={locale} />
-      <NameMarquee />
-      <RollCall locale={locale} region={region} />
+      <Ledger locale={locale} live={live} named={named} />
+      <NameMarquee names={named.map((p) => p.name)} />
+      <RollCall locale={locale} region={region} products={named} />
       <Film />
-      <Objects locale={locale} region={region} />
+      <Objects locale={locale} region={region} products={objects} />
       <Reach locale={locale} />
     </main>
   );

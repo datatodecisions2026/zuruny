@@ -1,4 +1,3 @@
-import { namedProducts } from "@/lib/catalog";
 
 /**
  * An endless strip of the names.
@@ -11,8 +10,7 @@ import { namedProducts } from "@/lib/catalog";
  * The track holds the list twice and translates -50%, so the wrap is seamless
  * with no measuring and no JavaScript. It pauses on hover.
  */
-export function NameMarquee() {
-  const names = namedProducts.map((p) => p.name);
+export function NameMarquee({ names }: { names: string[] }) {
   // Repeated so the track is wide enough to cover a large viewport.
   const half = [...names, ...names, ...names];
 

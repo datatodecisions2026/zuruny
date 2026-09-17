@@ -29,6 +29,15 @@ export type Variant = {
 
 export type ProductImage = { src: string; w: number; h: number; alt: string };
 
+export type SpecItem = {
+  label: string;
+  value: string;
+  /* French is optional per field: an admin may translate the description and
+     leave the spec, and the site should fall back rather than show blanks. */
+  labelFr?: string;
+  valueFr?: string;
+};
+
 export type Product = {
   handle: string;
   name: string;
@@ -36,9 +45,12 @@ export type Product = {
   status: "active" | "draft";
   namedAfterFrom?: string;
   description: string;
+  descriptionFr?: string;
+  /* The founder's own words. Never machine-translated, so there is no French
+     counterpart — see the note in i18n.ts. */
   memory?: string;
   pullQuote?: string;
-  spec: { label: string; value: string }[];
+  spec: SpecItem[];
   images: ProductImage[];
   variants: Variant[];
 };

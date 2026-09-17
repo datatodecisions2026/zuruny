@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { CartDrawer } from "@/components/CartDrawer";
 import { LOCALES, isLocale } from "@/lib/i18n";
+import { getLiveProducts } from "@/lib/products";
 import { REGION_HEADER, isRegion, type Region } from "@/lib/region";
 
 export function generateStaticParams() {
@@ -26,10 +27,11 @@ export default async function LocaleLayout({
   // preference, so there is nothing to persist and nothing to override.
   const headerRegion = (await headers()).get(REGION_HEADER);
   const region: Region = isRegion(headerRegion) ? headerRegion : "INTL";
+  const products = await getLiveProducts();
 
   return (
     <PreferencesProvider locale={locale} region={region}>
-      <CartProvider>
+      <CartProvider products={products}>
         <SiteHeader locale={locale} region={region} />
         {children}
         <SiteFooter locale={locale} />
