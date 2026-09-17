@@ -77,6 +77,13 @@ export function SiteHeader({
               <LanguageSwitch />
             </div>
 
+            <Link
+              href={localePath(locale, "/account")}
+              className="u-mono u-underline hidden text-[var(--text-muted)] transition-colors duration-300 hover:text-cream lg:inline-block"
+            >
+              {t.nav.account}
+            </Link>
+
             <CartButton />
             <MobileMenu />
           </div>

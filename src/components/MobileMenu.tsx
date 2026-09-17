@@ -34,6 +34,7 @@ export function MobileMenu() {
     { href: localePath(locale, "/shop"), label: t.nav.shop },
     { href: localePath(locale, "/#names"), label: t.nav.theNames },
     { href: localePath(locale, "/#reach"), label: t.nav.shipping },
+    { href: localePath(locale, "/account"), label: t.nav.account },
   ];
 
   useEffect(() => {
