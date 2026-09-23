@@ -1,4 +1,3 @@
-import { CinematicBrand } from "@/components/cinematic/CinematicOverlays";
 import type { StoryScene } from "@/data/homepageStory";
 
 type CinematicCopy = {
@@ -31,7 +30,6 @@ export function CinematicScene({
         ref={onVideoRef}
         aria-hidden="true"
         className="size-full object-cover"
-        poster={scene.id === "idle" ? "/hero/grove-poster.jpg" : undefined}
         muted
         loop={scene.loop}
         playsInline
@@ -44,8 +42,6 @@ export function CinematicScene({
         />
         <source src={scene.desktopSrc} type="video/mp4" />
       </video>
-
-      {scene.id === "idle" && <CinematicBrand />}
 
       {(copy.eyebrow || copy.title || copy.body) && (
         <div

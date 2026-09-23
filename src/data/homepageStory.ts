@@ -143,6 +143,16 @@ export function sceneCopyMotion(
   };
 }
 
+/** Give the lockup its own departure, spanning roughly 40% of a viewport. */
+export function brandExitMotion(progress: number) {
+  const departure = smoothstep((progress - 0.005) / 0.125);
+  return {
+    opacity: 1 - departure,
+    y: departure === 0 ? 0 : -32 * departure,
+    scale: 1 - 0.06 * departure,
+  };
+}
+
 export interface EndCtaMotion {
   opacity: number;
   y: number;

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef } from "react";
 import {
   SCENES,
+  brandExitMotion,
   endCtaMotion,
   sceneCopyMotion,
   sceneOpacity,
@@ -14,6 +15,7 @@ import {
   CinematicEndCta,
 } from "@/components/cinematic/CinematicOverlays";
 import { CinematicScene } from "@/components/cinematic/CinematicScene";
+import { CinematicBrand } from "@/components/cinematic/CinematicBrand";
 
 const SEEK_THRESHOLD_SECONDS = 0.04;
 
@@ -27,10 +29,18 @@ export function CinematicStage({ locale }: { locale: Locale }) {
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const textRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const endCtaRef = useRef<HTMLDivElement>(null);
+  const brandRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const t = getDict(locale);
 
   const renderProgress = useCallback((progress: number) => {
+    const brand = brandRef.current;
+    if (brand) {
+      const motion = brandExitMotion(progress);
+      brand.style.opacity = String(motion.opacity);
+      brand.style.transform = `translate3d(0, ${motion.y}px, 0) scale(${motion.scale})`;
+    }
+
     SCENES.forEach((scene, index) => {
       const opacity = sceneOpacity(SCENES, index, progress);
       const layer = layerRefs.current[scene.id];
@@ -128,7 +138,7 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         if (entry.isIntersecting) {
           active = true;
           void idle?.play().catch(() => {
-            // The poster remains visible when autoplay is unavailable.
+            // Leave the video paused if the browser declines autoplay.
           });
           scheduleUpdate();
           return;
@@ -191,6 +201,7 @@ export function CinematicStage({ locale }: { locale: Locale }) {
           );
         })}
 
+        <CinematicBrand motionRef={brandRef} />
         <CinematicEndCta locale={locale} containerRef={endCtaRef} />
       </div>
     </section>

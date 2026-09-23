@@ -2,12 +2,30 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   SCENES,
+  brandExitMotion,
   endCtaMotion,
   sceneCopyMotion,
   sceneOpacity,
   scenePlaybackProgress,
 } from "../src/data/homepageStory.ts";
 import { primaryNavigation } from "../src/lib/i18n.ts";
+
+test("brand exits gradually beyond the idle film crossfade and returns at the top", () => {
+  assert.deepEqual(brandExitMotion(0), { opacity: 1, y: 0, scale: 1 });
+  const duringCrossfade = brandExitMotion(SCENES[0].scrollEnd);
+  assert.ok(duringCrossfade.opacity > 0.4);
+  assert.ok(duringCrossfade.opacity < 1);
+  assert.ok(duringCrossfade.y < 0);
+  assert.ok(duringCrossfade.scale < 1);
+  let previous = 1;
+  for (let progress = 0; progress <= 1; progress += 0.01) {
+    const { opacity } = brandExitMotion(progress);
+    assert.ok(opacity >= 0 && opacity <= previous);
+    previous = opacity;
+  }
+  assert.equal(brandExitMotion(0.14).opacity, 0);
+  assert.deepEqual(brandExitMotion(0), { opacity: 1, y: 0, scale: 1 });
+});
 
 test("adjacent scenes crossfade only inside their configured overlap", () => {
   const idle = sceneOpacity(SCENES, 0, 0.05);

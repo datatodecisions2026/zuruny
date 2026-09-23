@@ -2,25 +2,6 @@ import type { RefObject } from "react";
 import Link from "next/link";
 import { getDict, localePath, type Locale } from "@/lib/i18n";
 
-export function CinematicBrand() {
-  return (
-    <div className="pointer-events-none absolute inset-0 z-10 grid place-items-center px-[var(--gutter)] text-center">
-      <div className="relative isolate flex flex-col items-center drop-shadow-[0_3px_12px_rgba(0,0,0,0.72)]">
-        <span
-          aria-hidden="true"
-          className="u-emblem size-[clamp(4.5rem,9vw,7.5rem)] text-cream"
-          style={{
-            ["--emblem-src" as string]: "url(/brand/emblem-mark.png)",
-          }}
-        />
-        <h1 className="u-mono mt-6 text-[clamp(0.85rem,1.4vw,1.1rem)] tracking-[0.42em] text-cream">
-          Zuruny
-        </h1>
-      </div>
-    </div>
-  );
-}
-
 export function CinematicEndCta({
   locale,
   containerRef,
