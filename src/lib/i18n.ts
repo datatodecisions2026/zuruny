@@ -10,6 +10,8 @@
  * note, until she supplies her own French.
  */
 
+import type { ProductKind } from "@/lib/catalog";
+
 export const LOCALES = ["en", "fr"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
@@ -28,6 +30,8 @@ const en = {
     shop: "Shop",
     theNames: "The names",
     shipping: "Shipping",
+    artisans: "Our artisans",
+    about: "About",
     basket: "Basket",
     home: "Zuruny — home",
     primary: "Primary",
@@ -111,9 +115,73 @@ const en = {
     title: (n: number) => `We ship to ${n} countries.`,
     sub: "Most orders leave Beirut for a kitchen a long way from it. Prices are in US dollars.",
   },
+  artisans: {
+    title: "Our artisans",
+    sub: "Behind every bottle and object, there is a person: a farmer, a potter, a glassblower, a grower, a maker. People who shaped our land long before we were born, and who continue to hold it together today.",
+    bioComingSoon: "Bio coming soon.",
+  },
+  kindTagline: {
+    "olive-oil": "Where nature meets meaning",
+    "carob-molasses": "Where heritage meets taste",
+    "grape-molasses": "Where heritage meets taste",
+    carafe: "Where craft meets heart",
+  } as Partial<Record<ProductKind, string>>,
+  about: {
+    title: "About Zuruny",
+    kicker: "Taste the land. Support the craft. Carry the story.",
+    sections: [
+      {
+        title: "A land of sun, soil, and stories",
+        body: "Lebanon's south and Mediterranean hillsides are places where time slows down, where olive trees grow like memories, where craft is a language, and where every home carries the scent of oil warming on the table. Zuruny was born from this world: from a love of the land, its flavors, its beauty, and the people who keep its traditions alive. This is for anyone who loves good olive oil, handcrafted objects, and the poetry of the Mediterranean, whether you live in Lebanon or far from it.",
+      },
+      {
+        title: "Craft that holds a soul",
+        body: "Behind every bottle and object, there is a person: a farmer, a potter, a glassblower, a grower, a maker. People who shaped our land long before we were born, and who continue to hold it together today. We work with these artisans to turn heritage into living design, objects that feel warm, human, and rooted.",
+      },
+      {
+        title: "More than olive oil",
+        body: "Our oils come from different Lebanese regions, each with its own character: bold, fruity, peppery, delicate. Each one shaped by altitude, sun, wind, and ancestral knowledge. We share the harvest year, the olive variety, the polyphenols, and the best culinary use for each oil. Because olive oil, like wine, has terroir — and Lebanon has many.",
+      },
+      {
+        title: "For those who stayed and those who roam",
+        body: "Zuruny connects people who love Lebanon: those who live there, those who left, and those who simply fell in love with its landscapes, flavors, and soul. Your choice supports local families, preserves endangered crafts, and helps keep villages alive with dignity.",
+      },
+      {
+        title: "What we protect",
+        body: "Without active support, Lebanon's ancestral crafts risk disappearing. Olive groves risk being abandoned. Entire regions risk losing the knowledge that shaped them. Zuruny exists to keep these traditions breathing, beautifully and sustainably.",
+      },
+      {
+        title: "A future built on roots and creation",
+        body: "We envision a world where Lebanese craftsmanship is celebrated globally. Where olive oil is appreciated for its terroir. Where artisans thrive. Where every table from Beirut to Paris, from London to São Paulo can hold a piece of Lebanon, offered with pride. Zuruny is heritage made tangible — a way to taste, touch, and carry the Mediterranean, wherever you are.",
+      },
+    ],
+    closing: "Because you deserve to feel home at home.",
+  },
   film: {
     label: "Zuruny brand film",
-    caption: "Em Ramiz · Aabra, South Lebanon",
+    caption: "Em Ramiz · Aabra, Chouf",
+  },
+  story: {
+    title: "From our trees to your table",
+    body: "Every bottle begins in the grove — named after people, pressed in named villages, carried from Beirut to kitchens around the world. This is the work before the product.",
+  },
+  cinematic: {
+    idle: { eyebrow: "", title: "", body: "" },
+    intro: {
+      eyebrow: "Rooted in Lebanon",
+      title: "Time shapes every tree",
+      body: "A story grown over generations, from soil that holds centuries of Mediterranean sun.",
+    },
+    canopy: {
+      eyebrow: "Into the canopy",
+      title: "Where the journey becomes gold",
+      body: "Deeper into the foliage, closer to the fruit. Every leaf is a small act of patience.",
+    },
+    oilDrop: {
+      eyebrow: "The essence",
+      title: "One drop, the whole story",
+      body: "From the fruit to the glass — each droplet carries the land, the climate, and the craft.",
+    },
   },
   shop: {
     title: "The shop",
@@ -237,6 +305,8 @@ const fr: typeof en = {
     shop: "Boutique",
     theNames: "Les prénoms",
     shipping: "Livraison",
+    artisans: "Nos artisans",
+    about: "À propos",
     basket: "Panier",
     home: "Zuruny — accueil",
     primary: "Principale",
@@ -320,9 +390,73 @@ const fr: typeof en = {
     title: (n: number) => `Nous livrons dans ${n} pays.`,
     sub: "La plupart des commandes quittent Beyrouth pour une cuisine très loin de là. Les prix sont en dollars américains.",
   },
+  artisans: {
+    title: "Nos artisans",
+    sub: "Derrière chaque bouteille et chaque objet, il y a une personne : un fermier, un potier, un verrier, un producteur, un artisan. Des personnes qui ont façonné notre terre bien avant nous, et qui continuent de la faire vivre aujourd'hui.",
+    bioComingSoon: "Biographie à venir.",
+  },
+  kindTagline: {
+    "olive-oil": "Où la nature rencontre le sens",
+    "carob-molasses": "Où l'héritage rencontre le goût",
+    "grape-molasses": "Où l'héritage rencontre le goût",
+    carafe: "Où l'artisanat rencontre le cœur",
+  } as Partial<Record<ProductKind, string>>,
+  about: {
+    title: "À propos de Zuruny",
+    kicker: "Goûtez la terre. Soutenez l'artisanat. Portez l'histoire.",
+    sections: [
+      {
+        title: "Une terre de soleil, de terre et d'histoires",
+        body: "Le Sud du Liban et ses collines méditerranéennes sont des lieux où le temps ralentit, où les oliviers poussent comme des souvenirs, où l'artisanat est un langage, et où chaque maison porte le parfum de l'huile qui chauffe sur la table. Zuruny est née de ce monde : d'un amour pour la terre, ses saveurs, sa beauté, et les personnes qui en gardent les traditions vivantes. C'est pour quiconque aime la bonne huile d'olive, les objets artisanaux et la poésie de la Méditerranée, que l'on vive au Liban ou loin de lui.",
+      },
+      {
+        title: "Un artisanat qui porte une âme",
+        body: "Derrière chaque bouteille et chaque objet, il y a une personne : un fermier, un potier, un verrier, un producteur, un artisan. Des personnes qui ont façonné notre terre bien avant nous, et qui continuent de la faire vivre aujourd'hui. Nous travaillons avec ces artisans pour transformer l'héritage en design vivant, des objets qui se sentent chaleureux, humains et enracinés.",
+      },
+      {
+        title: "Plus qu'une huile d'olive",
+        body: "Nos huiles viennent de différentes régions du Liban, chacune avec son propre caractère : corsé, fruité, poivré, délicat. Chacune façonnée par l'altitude, le soleil, le vent et un savoir ancestral. Nous partageons l'année de récolte, la variété d'olive, les polyphénols, et le meilleur usage culinaire de chaque huile. Car l'huile d'olive, comme le vin, a un terroir — et le Liban en a beaucoup.",
+      },
+      {
+        title: "Pour ceux qui sont restés et ceux qui ont voyagé",
+        body: "Zuruny relie les personnes qui aiment le Liban : celles qui y vivent, celles qui l'ont quitté, et celles qui sont simplement tombées amoureuses de ses paysages, de ses saveurs et de son âme. Votre choix soutient des familles locales, préserve des savoir-faire en voie de disparition, et aide à maintenir des villages vivants, avec dignité.",
+      },
+      {
+        title: "Ce que nous protégeons",
+        body: "Sans un soutien actif, les savoir-faire ancestraux du Liban risquent de disparaître. Les oliveraies risquent d'être abandonnées. Des régions entières risquent de perdre le savoir qui les a façonnées. Zuruny existe pour que ces traditions continuent de vivre, avec beauté et durabilité.",
+      },
+      {
+        title: "Un avenir bâti sur des racines et la création",
+        body: "Nous envisageons un monde où l'artisanat libanais est célébré mondialement. Où l'huile d'olive est appréciée pour son terroir. Où les artisans prospèrent. Où chaque table, de Beyrouth à Paris, de Londres à São Paulo, peut porter un morceau du Liban, offert avec fierté. Zuruny est un héritage rendu tangible — une façon de goûter, toucher et porter la Méditerranée, où que vous soyez.",
+      },
+    ],
+    closing: "Parce que vous méritez de vous sentir chez vous, chez vous.",
+  },
   film: {
     label: "Film de marque Zuruny",
-    caption: "Em Ramiz · Aabra, Liban-Sud",
+    caption: "Em Ramiz · Aabra, Mont-Liban",
+  },
+  story: {
+    title: "De nos oliviers à votre table",
+    body: "Chaque bouteille commence dans le verger — prénommée d'après des personnes, pressée dans des villages nommés, expédiée de Beyrouth vers des cuisines du monde entier. Voilà le travail avant le produit.",
+  },
+  cinematic: {
+    idle: { eyebrow: "", title: "", body: "" },
+    intro: {
+      eyebrow: "Enraciné au Liban",
+      title: "Le temps façonne chaque arbre",
+      body: "Une histoire cultivée au fil des générations, dans une terre nourrie de siècles de soleil méditerranéen.",
+    },
+    canopy: {
+      eyebrow: "Sous la canopée",
+      title: "Là où le voyage devient or",
+      body: "Plus profondément dans le feuillage, plus près du fruit. Chaque feuille est un petit acte de patience.",
+    },
+    oilDrop: {
+      eyebrow: "L'essence",
+      title: "Une goutte, toute l'histoire",
+      body: "Du fruit au verre — chaque goutte porte la terre, le climat et le savoir-faire.",
+    },
   },
   shop: {
     title: "La boutique",
@@ -446,6 +580,19 @@ export type Dict = typeof en;
 
 export function getDict(locale: Locale): Dict {
   return DICTS[locale];
+}
+
+/** The canonical page destinations shared by desktop and mobile navigation. */
+export function primaryNavigation(locale: Locale) {
+  const t = getDict(locale);
+
+  return [
+    { href: localePath(locale, "/shop"), label: t.nav.shop },
+    { href: localePath(locale, "/names"), label: t.nav.theNames },
+    { href: localePath(locale, "/artisans"), label: t.nav.artisans },
+    { href: localePath(locale, "/about"), label: t.nav.about },
+    { href: localePath(locale, "/shipping"), label: t.nav.shipping },
+  ];
 }
 
 /** Build a locale-aware href. English lives at the bare path. */

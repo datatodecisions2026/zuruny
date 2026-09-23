@@ -107,6 +107,12 @@ export default async function ProductPage({
             {descriptionFor(product, locale)}
           </p>
 
+          {t.kindTagline[product.kind] && (
+            <p className="m-intro-item u-mono mt-4 italic text-[var(--text-faint)]">
+              {t.kindTagline[product.kind]}
+            </p>
+          )}
+
           <div className="m-intro-item mt-12">
             <AddToCart product={product} />
           </div>
