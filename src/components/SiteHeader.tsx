@@ -2,7 +2,12 @@ import Link from "next/link";
 import { CartButton } from "@/components/CartButton";
 import { MobileMenu } from "@/components/MobileMenu";
 import { LanguageSwitch } from "@/components/PreferenceSwitches";
-import { getDict, localePath, type Locale } from "@/lib/i18n";
+import {
+  getDict,
+  localePath,
+  primaryNavigation,
+  type Locale,
+} from "@/lib/i18n";
 import type { Region } from "@/lib/region";
 
 /**
@@ -22,11 +27,7 @@ export function SiteHeader({
 }) {
   const t = getDict(locale);
 
-  const nav = [
-    { href: localePath(locale, "/shop"), label: t.nav.shop },
-    { href: localePath(locale, "/#names"), label: t.nav.theNames },
-    { href: localePath(locale, "/#reach"), label: t.nav.shipping },
-  ];
+  const nav = primaryNavigation(locale);
 
   return (
     <header className="fixed inset-x-0 top-0 z-40">

@@ -37,6 +37,10 @@ export const metadata: Metadata = {
   },
   description:
     "Single-origin olive oil from named villages in Lebanon, each tin carrying the name of someone in the founder's family. Molasses, ceramic carafes and Lebanese cedar. Shipped from Beirut to 29 countries.",
+  icons: {
+    icon: "/brand/emblem-mark.png",
+    apple: "/brand/emblem-mark.png",
+  },
 };
 
 export const viewport: Viewport = {

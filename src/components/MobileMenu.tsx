@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { usePreferences } from "@/lib/preferences";
-import { localePath } from "@/lib/i18n";
+import { localePath, primaryNavigation } from "@/lib/i18n";
 import { LanguageSwitch } from "@/components/PreferenceSwitches";
 
 /**
@@ -12,7 +12,7 @@ import { LanguageSwitch } from "@/components/PreferenceSwitches";
  *
  * The earlier build refused a hamburger on the grounds that three
  * destinations do not need hiding — but that was before the header also had
- * to carry a delivery region, a language and a basket. At 390px those five
+ * to carry a delivery region, a language and a basket. At 390px those controls
  * controls could not share a bar without colliding, so the menu earns its
  * place: it takes the crowding off the bar and gives the links room to be set
  * at display size instead of squeezed into 11px mono.
@@ -31,9 +31,7 @@ export function MobileMenu() {
   const buttonRef = useRef<HTMLButtonElement>(null);
 
   const nav = [
-    { href: localePath(locale, "/shop"), label: t.nav.shop },
-    { href: localePath(locale, "/#names"), label: t.nav.theNames },
-    { href: localePath(locale, "/#reach"), label: t.nav.shipping },
+    ...primaryNavigation(locale),
     { href: localePath(locale, "/account"), label: t.nav.account },
   ];
 

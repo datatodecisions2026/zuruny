@@ -26,23 +26,27 @@ export function RollCall({
   locale,
   region,
   products,
+  showHeader = true,
 }: {
   locale: Locale;
   region: Region;
   products: Product[];
+  showHeader?: boolean;
 }) {
   const t = getDict(locale);
 
   return (
     <section id="names" className="scroll-mt-24">
-      <header className="px-[var(--gutter)] pb-16 pt-8">
-        <h2 className="m-rise u-display text-[length:var(--step-3)] text-cream">
-          {t.names.title}
-        </h2>
-        <p className="m-rise u-measure mt-5 text-[var(--text-muted)]">
-          {t.names.sub}
-        </p>
-      </header>
+      {showHeader && (
+        <header className="px-[var(--gutter)] pb-16 pt-8">
+          <h2 className="m-rise u-display text-[length:var(--step-3)] text-cream">
+            {t.names.title}
+          </h2>
+          <p className="m-rise u-measure mt-5 text-[var(--text-muted)]">
+            {t.names.sub}
+          </p>
+        </header>
+      )}
 
       <ol>
         {products.map((product, i) => (
@@ -53,6 +57,7 @@ export function RollCall({
               flip={i % 2 === 1}
               locale={locale}
               region={region}
+              headingAs={showHeader ? "h3" : "h2"}
             />
           </li>
         ))}
@@ -67,12 +72,14 @@ function NameEntry({
   flip,
   locale,
   region,
+  headingAs,
 }: {
   product: Product;
   index: number;
   flip: boolean;
   locale: Locale;
   region: Region;
+  headingAs: "h2" | "h3";
 }) {
   const t = getDict(locale);
   const price = maybePriceForRegion(fromPriceCents(product), region);
@@ -99,7 +106,7 @@ function NameEntry({
 
         <div>
           <KineticHeading
-            as="h3"
+            as={headingAs}
             mode="scroll"
             text={product.name}
             className="u-display text-[length:var(--step-4)] text-cream"

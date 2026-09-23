@@ -10,13 +10,19 @@
  * The track holds the list twice and translates -50%, so the wrap is seamless
  * with no measuring and no JavaScript. It pauses on hover.
  */
-export function NameMarquee({ names }: { names: string[] }) {
+export function NameMarquee({
+  names,
+  label = "The names",
+}: {
+  names: string[];
+  label?: string;
+}) {
   // Repeated so the track is wide enough to cover a large viewport.
   const half = [...names, ...names, ...names];
 
   return (
     <section
-      aria-label="The names"
+      aria-label={label}
       className="m-marquee relative overflow-hidden border-y border-[var(--rule)] py-10"
     >
       <div
