@@ -58,7 +58,13 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       if (
         video &&
         !scene.loop &&
-        video.readyState >= HTMLMediaElement.HAVE_METADATA
+        video.readyState >= HTMLMediaElement.HAVE_METADATA &&
+        // A seek already in flight has a decoder working on it; queuing
+        // another on top makes weak hardware fall behind and stutter
+        // through a backlog. Skip this tick — the next rAF re-reads the
+        // live scroll position, so it always resumes at the current
+        // target instead of working through stale ones.
+        !video.seeking
       ) {
         const target = scenePlaybackProgress(scene, progress) * video.duration;
         if (
