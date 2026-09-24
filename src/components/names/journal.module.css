@@ -1,0 +1,179 @@
+.intro, .experience, .continuation {
+  --paper: #f3eedd;
+  --ink: #251b17;
+  --burgundy: #641414;
+  --olive: #646047;
+  --paper-rule: #b8aa92;
+}
+.intro { padding: 10rem var(--gutter) 0; max-width: 1800px; margin: auto; }
+.label { font: 400 0.625rem/1.6 var(--font-mono); letter-spacing: 0.18em; text-transform: uppercase; }
+.intro > .label { display: flex; align-items: center; gap: 1rem; color: #b9ac94; }
+.introDash { width: 2rem; height: 1px; background: #8d3d35; }
+.introRow { display: flex; align-items: end; justify-content: space-between; gap: 3rem; padding: 2rem 0 3rem; }
+.intro h1 { font: 400 clamp(5rem, 10.5vw, 11rem)/0.95 var(--font-display); letter-spacing: -0.035em; }
+.titlePeriod { color: #945347; }
+.introRow > p { max-width: 25rem; font: 400 clamp(1.2rem, 1.7vw, 1.6rem)/1.5 var(--font-display); color: #b9b0a0; padding-bottom: 0.25rem; }
+.introFoot { display: flex; justify-content: space-between; gap: 1rem; border-top: 1px solid var(--rule); padding: 1.25rem 0; font: 400 0.625rem/1.6 var(--font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: #b9ac94; }
+.introFoot a { display: flex; gap: 2rem; color: var(--color-cream); }
+.experience { position: relative; margin: 1rem auto 0; }
+.stage { width: 100%; padding: 7rem 0 1rem; }
+.toolbar, .bookControls { width: 84%; max-width: 1460px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.toolbar { padding-bottom: 1rem; }
+.index { display: flex; gap: clamp(1rem, 2.2vw, 2.5rem); }
+.index a { display: inline-flex; align-items: center; min-height: 44px; gap: 0.6rem; font: 400 clamp(0.9rem, 1.2vw, 1.125rem)/1.2 var(--font-display); color: #b7af9f; border-bottom: 1px solid transparent; white-space: nowrap; }
+.index a > span { font: 400 0.5625rem var(--font-mono); color: #9c8d73; }
+.index a[aria-current] { color: #f3eedd; border-bottom-color: #b49060; }
+.index a:hover, .readToggle:hover, .bookControls a:hover { color: #f3eedd; }
+.readToggle { min-height: 44px; cursor: pointer; font: 400 0.5625rem/1.5 var(--font-mono); text-transform: uppercase; letter-spacing: 0.08em; color: #b9ac94; text-decoration: underline; text-underline-offset: 5px; }
+.book { position: relative; width: 84%; max-width: 1460px; margin: auto; perspective: 2200px; }
+.spread { display: grid; grid-template-columns: 1fr 1fr; position: relative; margin-bottom: 2rem; isolation: isolate; scroll-margin-top: 9rem; }
+.leaf { position: relative; color: var(--ink); min-height: 35rem; transform-origin: left center; transform-style: preserve-3d; --fold: 0; }
+.leafFront, .leafBack { background: var(--paper); background-image: linear-gradient(#f3eeddcf, #f3eeddcf), url('/names/journal/journal_page.webp'); background-size: 100% 100%; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.leafFront { position: relative; min-height: 100%; padding: 1.5rem clamp(1.5rem, 3vw, 3.5rem); display: flex; flex-direction: column; box-shadow: inset 0 0 2rem #886c3110; }
+.leaf:nth-child(odd) .leafFront { background-image: linear-gradient(90deg, #f3eeddcf 88%, #ad967d55), url('/names/journal/journal_page.webp'); }
+.leaf:nth-child(even) .leafFront { background-image: linear-gradient(90deg, #ad967d66, #f3eeddcf 10%, #f3eeddcf), url('/names/journal/journal_page.webp'); }
+.leafFront::after, .leafBack::after { position: absolute; inset: 0; content: ''; pointer-events: none; background: linear-gradient(90deg, #251b17 0%, transparent 90%); opacity: var(--fold); box-shadow: inset -2px 0 0 #fff6; }
+.leafBack { position: absolute; inset: 0; display: grid; place-items: center; transform: rotateY(180deg); background-image: linear-gradient(90deg, #d8cdb899, #f3eeddcc 22%), url('/names/journal/journal_page.webp'); }
+.leafBack .emblem { opacity: 0.12; width: 4rem; height: 4rem; }
+.runningHead, .folio { display: flex; justify-content: space-between; gap: 1rem; font: 400 0.5rem/1.5 var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: #71624f; flex-shrink: 0; }
+.runningHead { padding-bottom: 0.75rem; border-bottom: 1px solid #b8aa9255; }
+.folio { padding-top: 0.75rem; margin-top: auto; }
+.pageContent { flex: 1; display: flex; flex-direction: column; gap: 1rem; padding: clamp(1.25rem, 3vh, 2.5rem) 0; }
+.pageContent h2 { font: 400 clamp(3rem, 5.5vw, 6rem)/0.95 var(--font-display); letter-spacing: -0.02em; color: var(--burgundy); }
+.pageContent h3:not(.label) { font: 400 clamp(1.8rem, 2.5vw, 3rem)/1.05 var(--font-display); color: var(--burgundy); }
+.pageContent .label { color: var(--burgundy); }
+.dedication { text-align: center; align-items: center; justify-content: center; gap: 1.125rem; }
+.chapterNumeral { display: block; font-size: 0.8125rem; margin-top: 0.5rem; }
+.divider { width: 9rem; height: 2.5rem; object-fit: cover; mix-blend-mode: multiply; }
+.botanical { width: min(85%, 22rem); height: auto; object-fit: contain; mix-blend-mode: multiply; }
+.roots { font: 400 1.25rem/1.5 var(--font-display); }
+.roots > span { display: block; font: 400 0.5rem/1.8 var(--font-mono); text-transform: uppercase; letter-spacing: 0.16em; color: var(--olive); }
+.dedicationQuote { font: italic 400 clamp(1.15rem, 1.8vw, 1.6rem)/1.4 var(--font-display); max-width: 23ch; margin: 0.75rem 0; color: var(--olive); }
+.memory { font: 400 clamp(1.125rem, 1.6vw, 1.45rem)/1.5 var(--font-display); letter-spacing: 0.005em; max-width: 52ch; white-space: pre-wrap; }
+.story .memory { margin-top: 1rem; }
+.story:not(:has(.artworkLink)) .memory::first-letter { float: left; font-size: 3.8em; line-height: 0.85; padding: 0.06em 0.1em 0 0; color: var(--burgundy); }
+.storyRule { width: 3rem; border-top: 1px solid var(--burgundy); margin-top: auto; }
+.artworkLink { font: 400 0.625rem/1.6 var(--font-mono); color: var(--burgundy); text-underline-offset: 4px; text-decoration: underline; }
+.story .artworkLink { margin-top: auto; padding-top: 0.75rem; }
+.languageNote { font: 400 0.625rem/1.5 var(--font-sans); color: var(--olive); }
+.description { font: 400 clamp(0.95rem, 1.1vw, 1.125rem)/1.5 Georgia, serif; max-width: 52ch; }
+.fieldNotes { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.5rem; margin-top: 0.25rem; }
+.fieldNotes > div { border-top: 1px solid var(--paper-rule); padding-top: 0.5rem; }
+.fieldNotes dt { font: 400 0.5625rem/1.5 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--olive); }
+.fieldNotes dd { font: 400 1rem/1.4 var(--font-display); margin-top: 0.25rem; }
+.figure { display: flex; flex: 1; flex-direction: column; min-height: 0; gap: 0.5rem; }
+.photo { flex: 1; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.photo img { display: block; width: 100%; height: 100%; max-height: 22rem; object-fit: contain; }
+.figure figcaption { font: 400 0.5rem/1.5 var(--font-mono); letter-spacing: 0.07em; color: var(--olive); }
+.smallFigure { flex: 0 1 auto; width: 100%; }
+.smallFigure .photo img { max-height: 11rem; object-fit: contain; }
+.dedication .smallFigure { max-width: 11rem; }
+.dedication .smallFigure .photo img { max-height: 12rem; }
+.origin .smallFigure { margin-top: auto; }
+.origin .smallFigure .photo { max-height: 9rem; }
+.origin .smallFigure .photo img { height: 9rem; width: 100%; object-fit: cover; }
+.product { gap: 0.75rem; }
+.productLink { display: flex; justify-content: space-between; gap: 1rem; align-items: center; min-height: 44px; border-top: 1px solid var(--paper-rule); padding-top: 0.5rem; color: var(--burgundy); font: 400 0.625rem/1.5 var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; }
+.productLink:hover { text-decoration: underline; text-underline-offset: 4px; }
+.reflection { justify-content: center; }
+.reflectionQuote { font: italic 400 1.5rem/1.35 var(--font-display); color: var(--burgundy); }
+.emblem { display: inline-block; width: 2.5rem; height: 2.5rem; background: currentColor; mask: url('/brand/emblem.png') center / contain no-repeat; }
+.cover { color: #e5cf9d; }
+.cover .leafFront { height: 100%; min-height: 35rem; padding: 1.25rem; background-image: linear-gradient(90deg, #35090988, transparent 5%, #641414eb 12%), url('/names/journal/journal_page.webp'); background-color: #641414; background-blend-mode: normal, multiply; border-radius: 2px 6px 6px 2px; box-shadow: inset 5px 0 4px #25040477, 1px 2px 0 #aa9272, 3px 5px 0 #d2c1a3, 5px 7px 0 #781717, 0 18px 50px #0006; }
+.coverFrame { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #bf9e5b66; outline: 1px solid #bf9e5b22; outline-offset: -6px; text-align: center; padding: 2rem; gap: 1.5rem; }
+.coverFrame > .label { letter-spacing: 0.3em; }
+.cover h2 { font: 400 clamp(3rem, 4.5vw, 5rem)/0.95 var(--font-display); }
+.coverRule { width: 2rem; height: 1px; background: #e5cf9d66; }
+.coverFrame > p { font: italic 400 1.2rem/1.4 var(--font-display); max-width: 17ch; }
+.coverBottom { margin-top: 1.5rem; font: 400 0.5rem var(--font-mono); text-transform: uppercase; letter-spacing: 0.2em; }
+.closingArt, .closingPage { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 1.5rem; color: var(--burgundy); padding: 1rem 0; }
+.closingArt { gap: 3rem; }
+.closingPage h2 { font: 400 clamp(2.5rem, 4vw, 4.5rem)/1.05 var(--font-display); max-width: 12ch; }
+.closingPage .productLink { width: 100%; }
+.bookControls { min-height: 4rem; font: 400 0.5rem/1.5 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: #b9ac94; }
+.scrollHint { display: none; }
+.pager { display: none; align-items: center; gap: 0.5rem; }
+.pager > span { min-width: 4rem; text-align: center; color: #f3eedd; }
+.pager > span > span { color: #a39782; }
+.pager button { width: 44px; height: 44px; cursor: pointer; font: 400 1rem var(--font-sans); }
+.pager button:disabled { opacity: 0.3; cursor: default; }
+.experience[data-enhanced] .stage { height: 100svh; }
+.experience[data-enhanced] .book { height: min(72svh, 740px); box-shadow: 0 1px 0 #c1ae8c, 0 4px 0 #ded3bd, 0 6px 0 #948371, 0 8px 0 #641414, 0 24px 65px #0007; }
+.experience[data-enhanced] .spread { position: absolute; inset: 0; margin: 0; height: 100%; }
+.experience[data-enhanced] .leaf { min-height: 0; height: 100%; }
+.experience[data-enhanced] .leafFront { height: 100%; min-height: 0; }
+.experience[data-enhanced] .scrollHint { display: block; }
+.experience[data-enhanced] .pager { display: flex; }
+.experience[data-enhanced] .coverSpace { background: transparent; }
+.continuation { padding: 6rem var(--gutter) 8rem; text-align: center; }
+.continuation > p { color: #b9ac94; }
+.continuation h2 { font: 400 clamp(2.5rem, 5vw, 5rem)/1.1 var(--font-display); max-width: 19ch; margin: 1.5rem auto 2rem; }
+.continuation a { display: inline-flex; align-items: center; gap: 3rem; min-height: 44px; border-bottom: 1px solid #b9ac94; font: 400 0.625rem/1.5 var(--font-mono); text-transform: uppercase; letter-spacing: 0.12em; }
+.experience :focus-visible { outline-color: var(--burgundy); }
+.toolbar :focus-visible, .bookControls :focus-visible { outline-color: #e5cf9d; }
+
+@media (min-width: 1024px) and (max-height: 800px) {
+  .experience[data-enhanced] .book { height: calc(100svh - 225px); }
+  .experience[data-enhanced] .pageContent { gap: 0.75rem; padding: 1rem 0; }
+  .experience[data-enhanced] .memory { font-size: 1.125rem; }
+  .experience[data-enhanced] .smallFigure .photo img { max-height: 7rem; }
+  .experience[data-enhanced] .description { font-size: 0.95rem; }
+  .experience[data-enhanced] .fieldNotes { gap: 0.5rem 1rem; }
+}
+@media (max-width: 1023px) {
+  .intro { padding-top: 8rem; }
+  .introRow { display: block; padding: 1.5rem 0 2rem; }
+  .intro h1 { font-size: clamp(4.5rem, 13vw, 7rem); }
+  .introRow > p { margin-top: 1.5rem; max-width: 30ch; }
+  .introFoot { font-size: 0.5rem; }
+  .introFoot a { gap: 1rem; }
+  .stage { padding-top: 4.5rem; }
+  .toolbar, .bookControls, .book { width: calc(100% - 2.5rem); max-width: 620px; }
+  .toolbar { flex-direction: column; align-items: stretch; gap: 0; padding-bottom: 0.5rem; }
+  .index { gap: 0; justify-content: space-between; }
+  .index a { flex-direction: column; align-items: center; justify-content: center; gap: 0.2rem; font-size: 1rem; padding: 0 0.25rem; }
+  .index a > span { font-size: 0.5rem; }
+  .readToggle { align-self: end; min-height: 32px; font-size: 0.5rem; }
+  .spread { display: block; scroll-margin-top: 5rem; }
+  .leaf { min-height: 32rem; margin-bottom: 1rem; scroll-margin-top: 5rem; }
+  .leafFront { padding: 1rem clamp(1.25rem, 5vw, 2.5rem); min-height: 32rem; }
+  .leaf:nth-child(n) .leafFront { background-image: linear-gradient(90deg, #d6c8b466, #f3eeddcf 8%), url('/names/journal/journal_page.webp'); }
+  .cover:nth-child(n) .leafFront { background-image: linear-gradient(90deg, #35090988, transparent 5%, #641414eb 12%), url('/names/journal/journal_page.webp'); }
+  .coverSpace { display: none; }
+  .pageContent { padding: 1.5rem 0; }
+  .pageContent h2 { font-size: clamp(3.25rem, 10vw, 4.5rem); }
+  .pageContent h3:not(.label) { font-size: 2rem; }
+  .memory { font-size: clamp(1.125rem, 3vw, 1.4rem); line-height: 1.5; }
+  .description { font-size: 0.9375rem; }
+  .fieldNotes { gap: 0.875rem 1rem; }
+  .fieldNotes dd { font-size: 1rem; }
+  .experience[data-enhanced] .book { height: calc(100svh - 215px); perspective: 1800px; }
+  .experience[data-enhanced] .spread { display: contents; }
+  .experience[data-enhanced] .leaf { position: absolute; inset: 0; margin: 0; }
+  .experience[data-enhanced] .pageContent { padding: 1rem 0; gap: 0.875rem; }
+  .experience[data-enhanced] .story .memory { margin-top: 0.25rem; }
+  .experience[data-enhanced] .product .photo img { max-height: calc(100svh - 435px); }
+  .coverFrame { padding: 1rem; gap: 1rem; }
+  .cover h2 { font-size: clamp(3rem, 10vw, 4rem); }
+  .bookControls { gap: 0.5rem; min-height: 3rem; font-size: 0.45rem; }
+  .experience[data-enhanced] .scrollHint { display: none; }
+  .pager { gap: 0; }
+  .pager > span { min-width: 3rem; }
+  .continuation { padding: 4rem var(--gutter); }
+}
+@media (max-width: 374px) {
+  .toolbar, .bookControls, .book { width: calc(100% - 1.5rem); }
+  .index a { font-size: 0.9rem; }
+  .leafFront { padding: 1rem 1.125rem; }
+  .fieldNotes { gap: 0.5rem 0.75rem; }
+  .memory { font-size: 1.0625rem; }
+  .pageContent h3:not(.label) { font-size: 1.75rem; }
+}
+@media (prefers-reduced-motion: reduce), (max-height: 649px) {
+  .readToggle, .scrollHint { display: none; }
+  .stage { padding-top: 1rem; }
+}
+@media print {
+  .toolbar, .bookControls, .introFoot, .continuation { display: none; }
+  .spread { break-inside: avoid; }
+}
