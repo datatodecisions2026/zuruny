@@ -182,6 +182,11 @@ const en = {
       title: "One drop, the whole story",
       body: "From the fruit to the glass — each droplet carries the land, the climate, and the craft.",
     },
+    loading: {
+      eyebrow: "Zuruny · Beirut",
+      title: "Preparing our stories",
+      sub: "The grove takes its time. So will we, for a moment.",
+    },
   },
   shop: {
     title: "The shop",
@@ -456,6 +461,11 @@ const fr: typeof en = {
       eyebrow: "L'essence",
       title: "Une goutte, toute l'histoire",
       body: "Du fruit au verre — chaque goutte porte la terre, le climat et le savoir-faire.",
+    },
+    loading: {
+      eyebrow: "Zuruny · Beyrouth",
+      title: "Nous préparons nos histoires",
+      sub: "Le verger prend son temps. Nous aussi, un instant.",
     },
   },
   shop: {

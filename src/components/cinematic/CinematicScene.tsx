@@ -33,7 +33,7 @@ export function CinematicScene({
         muted
         loop={scene.loop}
         playsInline
-        preload={scene.preload ? "auto" : "metadata"}
+        preload="auto"
       >
         <source
           media="(max-width: 767px)"

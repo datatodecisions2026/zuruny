@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   SCENES,
   brandExitMotion,
@@ -16,6 +16,7 @@ import {
 } from "@/components/cinematic/CinematicOverlays";
 import { CinematicScene } from "@/components/cinematic/CinematicScene";
 import { CinematicBrand } from "@/components/cinematic/CinematicBrand";
+import { CinematicLoader } from "@/components/cinematic/CinematicLoader";
 
 const SEEK_THRESHOLD_SECONDS = 0.04;
 
@@ -30,7 +31,9 @@ export function CinematicStage({ locale }: { locale: Locale }) {
   const textRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const endCtaRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
+  const loaderFillRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
+  const [ready, setReady] = useState(false);
   const t = getDict(locale);
 
   const renderProgress = useCallback((progress: number) => {
@@ -89,6 +92,91 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       endCta.setAttribute("aria-hidden", String(!interactive));
     }
   }, []);
+
+  // iOS Safari only repaints a seeked frame on a video that has played at
+  // least once; scrubbing currentTime on a never-played video just freezes
+  // on frame 0. Nudge each video awake so later scroll-driven seeks render.
+  // The same pass watches buffered ranges so the loading screen can hold
+  // until the whole sequence is downloaded, instead of a scroll that
+  // stutters fetching data it hasn't buffered yet.
+  useEffect(() => {
+    const videos = Object.values(videoRefs.current).filter(
+      (video): video is HTMLVideoElement => Boolean(video),
+    );
+    if (videos.length === 0) return;
+
+    const reducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const minVisibleMs = reducedMotion ? 0 : 900;
+    const shownAt = Date.now();
+    let settled = false;
+
+    // The 8s fallback below may still fire after this runs; `settled`
+    // makes that a no-op rather than needing to cancel it here.
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      const wait = Math.max(0, minVisibleMs - (Date.now() - shownAt));
+      window.setTimeout(() => setReady(true), wait);
+    };
+
+    const prime = (video: HTMLVideoElement) => {
+      void video
+        .play()
+        .then(() => video.pause())
+        .catch(() => {});
+    };
+
+    const isFullyBuffered = (video: HTMLVideoElement) => {
+      const { buffered, duration } = video;
+      if (!Number.isFinite(duration) || duration <= 0) return false;
+      return (
+        buffered.length > 0 &&
+        buffered.end(buffered.length - 1) >= duration - 0.25
+      );
+    };
+
+    const checkBuffered = () => {
+      const loaded = videos.filter(isFullyBuffered).length;
+      const fill = loaderFillRef.current;
+      if (fill) fill.style.transform = `scaleX(${loaded / videos.length})`;
+      if (loaded === videos.length) finish();
+    };
+
+    videos.forEach((video) => {
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        prime(video);
+      } else {
+        video.addEventListener("loadeddata", () => prime(video), {
+          once: true,
+        });
+      }
+      video.addEventListener("progress", checkBuffered);
+    });
+
+    // A flaky connection should not strand the homepage behind the loader.
+    const timeoutId = window.setTimeout(finish, 8000);
+    checkBuffered();
+
+    return () => {
+      videos.forEach((video) =>
+        video.removeEventListener("progress", checkBuffered),
+      );
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
+
+  // Hold scroll until the loader clears so the first scroll can't scrub
+  // into an unbuffered frame.
+  useEffect(() => {
+    if (ready) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [ready]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -204,6 +292,8 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         <CinematicBrand motionRef={brandRef} />
         <CinematicEndCta locale={locale} containerRef={endCtaRef} />
       </div>
+
+      <CinematicLoader ready={ready} fillRef={loaderFillRef} locale={locale} />
     </section>
   );
 }

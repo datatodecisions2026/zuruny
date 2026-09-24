@@ -14,8 +14,6 @@ export interface StoryScene {
   side?: "left" | "right";
   desktopSrc: string;
   mobileSrc: string;
-  /** Prefers to preload this asset. Idle = true. */
-  preload: boolean;
   /** Muted looping idle video vs scroll-driven scene. */
   loop: boolean;
 }
@@ -25,7 +23,6 @@ export const SCENES: StoryScene[] = [
     id: "idle",
     scrollStart: 0,
     scrollEnd: 0.06,
-    preload: true,
     loop: true,
     desktopSrc: "/hero_scenes/tree_idle_seamless.mp4",
     mobileSrc: "/hero_scenes/tree_idle_mobile_seamless.mp4",
@@ -35,7 +32,6 @@ export const SCENES: StoryScene[] = [
     scrollStart: 0.04,
     scrollEnd: 0.33,
     side: "left",
-    preload: false,
     loop: false,
     desktopSrc: "/hero_scenes/tree_intro_new.mp4",
     mobileSrc: "/hero_scenes/tree_intro_mobile_new.mp4",
@@ -45,7 +41,6 @@ export const SCENES: StoryScene[] = [
     scrollStart: 0.3,
     scrollEnd: 0.57,
     side: "right",
-    preload: false,
     loop: false,
     desktopSrc: "/hero_scenes/tree_canopy_new.mp4",
     mobileSrc: "/hero_scenes/tree_canopy_mobile_new.mp4",
@@ -55,7 +50,6 @@ export const SCENES: StoryScene[] = [
     scrollStart: 0.55,
     scrollEnd: 0.84,
     side: "left",
-    preload: false,
     loop: false,
     desktopSrc: "/hero_scenes/oil_drop_new.mp4",
     mobileSrc: "/hero_scenes/oil_drop_mobile_new.mp4",
