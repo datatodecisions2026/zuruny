@@ -19,6 +19,10 @@ import { CinematicBrand } from "@/components/cinematic/CinematicBrand";
 import { CinematicLoader } from "@/components/cinematic/CinematicLoader";
 
 const SEEK_THRESHOLD_SECONDS = 0.04;
+// Fraction of the remaining gap closed per frame when easing the seek
+// target toward the scroll-derived position. Lower = more glide, higher =
+// more 1:1 with the raw scroll.
+const SEEK_EASE = 0.18;
 
 /**
  * A pinned, scroll-scrubbed sequence of films. The scene ranges in
@@ -33,6 +37,7 @@ export function CinematicStage({ locale }: { locale: Locale }) {
   const brandRef = useRef<HTMLDivElement>(null);
   const loaderFillRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
+  const easedProgressRef = useRef<Record<string, number>>({});
   const [ready, setReady] = useState(false);
   const t = getDict(locale);
 
@@ -66,7 +71,16 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         // target instead of working through stale ones.
         !video.seeking
       ) {
-        const target = scenePlaybackProgress(scene, progress) * video.duration;
+        const rawLocal = scenePlaybackProgress(scene, progress);
+        const previousLocal = easedProgressRef.current[scene.id] ?? rawLocal;
+        // Ease toward the scroll-derived position instead of snapping to
+        // it, so a fast or jerky scroll reads as the camera gliding with
+        // a little momentum rather than teleporting between frames.
+        const easedLocal =
+          previousLocal + (rawLocal - previousLocal) * SEEK_EASE;
+        easedProgressRef.current[scene.id] = easedLocal;
+
+        const target = easedLocal * video.duration;
         if (
           Number.isFinite(target) &&
           Math.abs(video.currentTime - target) > SEEK_THRESHOLD_SECONDS
@@ -208,13 +222,24 @@ export function CinematicStage({ locale }: { locale: Locale }) {
     }
 
     let active = false;
+    // Mobile browsers change window.innerHeight as their address bar
+    // collapses or reappears mid-scroll, and that fires a `resize` event
+    // too. Recomputing progress against a live innerHeight would jump the
+    // scene right as that happens — exactly while someone is scrolling.
+    // Cache the height and only refresh it on a resize that isn't just
+    // chrome sliding away.
+    const coarsePointer = window.matchMedia(
+      "(hover: none) and (pointer: coarse)",
+    ).matches;
+    let viewportHeight = window.innerHeight;
+    let laidOutWidth = window.innerWidth;
 
     const update = () => {
       rafRef.current = null;
       if (!active) return;
 
       const rect = container.getBoundingClientRect();
-      const scrollable = rect.height - window.innerHeight;
+      const scrollable = rect.height - viewportHeight;
       const progress =
         scrollable > 0 ? clamp(-rect.top / scrollable, 0, 1) : 0;
 
@@ -225,6 +250,17 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       if (active && rafRef.current === null) {
         rafRef.current = requestAnimationFrame(update);
       }
+    };
+
+    const refreshViewport = () => {
+      viewportHeight = window.innerHeight;
+      laidOutWidth = window.innerWidth;
+      scheduleUpdate();
+    };
+
+    const onResize = () => {
+      if (coarsePointer && window.innerWidth === laidOutWidth) return;
+      refreshViewport();
     };
 
     const observer = new IntersectionObserver(
@@ -250,11 +286,13 @@ export function CinematicStage({ locale }: { locale: Locale }) {
 
     observer.observe(container);
     window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", refreshViewport);
     return () => {
       observer.disconnect();
       window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", refreshViewport);
       idle?.pause();
       if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
     };
