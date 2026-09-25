@@ -24,6 +24,22 @@ const SEEK_THRESHOLD_SECONDS = 0.04;
 // more 1:1 with the raw scroll.
 const SEEK_EASE = 0.18;
 
+function frameSrc(base: string, index: number): string {
+  return `${base}/f${String(index).padStart(3, "0")}.webp`;
+}
+
+/** Eases `sceneId`'s stored progress toward `rawLocal` and returns it. */
+function easeLocalProgress(
+  store: Record<string, number>,
+  sceneId: string,
+  rawLocal: number,
+): number {
+  const previous = store[sceneId] ?? rawLocal;
+  const eased = previous + (rawLocal - previous) * SEEK_EASE;
+  store[sceneId] = eased;
+  return eased;
+}
+
 /**
  * A pinned, scroll-scrubbed sequence of films. The scene ranges in
  * homepageStory.ts overlap briefly, which gives each transition its crossfade.
@@ -32,12 +48,17 @@ export function CinematicStage({ locale }: { locale: Locale }) {
   const containerRef = useRef<HTMLElement>(null);
   const layerRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const frameImgRefs = useRef<Record<string, HTMLImageElement | null>>({});
   const textRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const endCtaRef = useRef<HTMLDivElement>(null);
   const brandRef = useRef<HTMLDivElement>(null);
   const loaderFillRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const easedProgressRef = useRef<Record<string, number>>({});
+  // Scenes with mobileFrames render no <source> on mobile (see
+  // CinematicScene) so nothing downloads there; this flag is what tells
+  // renderProgress and the loader effect which path a scene actually took.
+  const isDesktopRef = useRef(true);
   const [ready, setReady] = useState(false);
   const t = getDict(locale);
 
@@ -53,6 +74,7 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       const opacity = sceneOpacity(SCENES, index, progress);
       const layer = layerRefs.current[scene.id];
       const video = videoRefs.current[scene.id];
+      const frameImg = frameImgRefs.current[scene.id];
       const copy = textRefs.current[scene.id];
 
       if (layer) {
@@ -60,7 +82,27 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         layer.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       }
 
-      if (
+      if (!scene.loop && scene.mobileFrames && !isDesktopRef.current) {
+        if (frameImg) {
+          const rawLocal = scenePlaybackProgress(scene, progress);
+          const easedLocal = easeLocalProgress(
+            easedProgressRef.current,
+            scene.id,
+            rawLocal,
+          );
+          const { base, count } = scene.mobileFrames;
+          const frameIndex = Math.min(
+            count,
+            Math.max(1, Math.round(easedLocal * (count - 1)) + 1),
+          );
+          // Images have no decoder-seek cost, so there's no need to gate
+          // this behind a "still loading" check the way video does.
+          if (frameImg.dataset.frame !== String(frameIndex)) {
+            frameImg.dataset.frame = String(frameIndex);
+            frameImg.src = frameSrc(base, frameIndex);
+          }
+        }
+      } else if (
         video &&
         !scene.loop &&
         video.readyState >= HTMLMediaElement.HAVE_METADATA &&
@@ -72,13 +114,11 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         !video.seeking
       ) {
         const rawLocal = scenePlaybackProgress(scene, progress);
-        const previousLocal = easedProgressRef.current[scene.id] ?? rawLocal;
-        // Ease toward the scroll-derived position instead of snapping to
-        // it, so a fast or jerky scroll reads as the camera gliding with
-        // a little momentum rather than teleporting between frames.
-        const easedLocal =
-          previousLocal + (rawLocal - previousLocal) * SEEK_EASE;
-        easedProgressRef.current[scene.id] = easedLocal;
+        const easedLocal = easeLocalProgress(
+          easedProgressRef.current,
+          scene.id,
+          rawLocal,
+        );
 
         const target = easedLocal * video.duration;
         if (
@@ -116,14 +156,12 @@ export function CinematicStage({ locale }: { locale: Locale }) {
   // iOS Safari only repaints a seeked frame on a video that has played at
   // least once; scrubbing currentTime on a never-played video just freezes
   // on frame 0. Nudge each video awake so later scroll-driven seeks render.
-  // The same pass watches buffered ranges so the loading screen can hold
-  // until the whole sequence is downloaded, instead of a scroll that
-  // stutters fetching data it hasn't buffered yet.
+  // The same pass tracks how loaded every scene is — buffered ranges for
+  // video, decoded count for frame sequences — so the loading screen can
+  // hold until everything is actually usable, instead of a scroll that
+  // stutters fetching data (or frames) it doesn't have yet.
   useEffect(() => {
-    const videos = Object.values(videoRefs.current).filter(
-      (video): video is HTMLVideoElement => Boolean(video),
-    );
-    if (videos.length === 0) return;
+    isDesktopRef.current = window.matchMedia("(min-width: 768px)").matches;
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
@@ -131,6 +169,7 @@ export function CinematicStage({ locale }: { locale: Locale }) {
     const minVisibleMs = reducedMotion ? 0 : 900;
     const shownAt = Date.now();
     let settled = false;
+    let disposed = false;
 
     // The 8s fallback below may still fire after this runs; `settled`
     // makes that a no-op rather than needing to cancel it here.
@@ -138,7 +177,9 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       if (settled) return;
       settled = true;
       const wait = Math.max(0, minVisibleMs - (Date.now() - shownAt));
-      window.setTimeout(() => setReady(true), wait);
+      window.setTimeout(() => {
+        if (!disposed) setReady(true);
+      }, wait);
     };
 
     const prime = (video: HTMLVideoElement) => {
@@ -157,14 +198,61 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       );
     };
 
-    const checkBuffered = () => {
-      const loaded = videos.filter(isFullyBuffered).length;
+    // Each scene contributes one 0..1 "how loaded is it" fraction,
+    // whichever path it actually took.
+    const fractions = new Map<string, number>();
+    const cleanups: Array<() => void> = [];
+
+    const recompute = () => {
+      if (disposed) return;
+      const values = [...fractions.values()];
       const fill = loaderFillRef.current;
-      if (fill) fill.style.transform = `scaleX(${loaded / videos.length})`;
-      if (loaded === videos.length) finish();
+      if (fill && values.length > 0) {
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        fill.style.transform = `scaleX(${avg})`;
+      }
+      if (values.length > 0 && values.every((v) => v >= 1)) finish();
     };
 
-    videos.forEach((video) => {
+    SCENES.forEach((scene) => {
+      if (scene.mobileFrames && !isDesktopRef.current) {
+        const { base, count } = scene.mobileFrames;
+        fractions.set(scene.id, 0);
+        let loaded = 0;
+
+        const frameImg = frameImgRefs.current[scene.id];
+        if (frameImg) frameImg.src = frameSrc(base, 1);
+
+        for (let i = 1; i <= count; i++) {
+          const preload = new Image();
+          preload.onload = preload.onerror = () => {
+            if (disposed) return;
+            loaded += 1;
+            fractions.set(scene.id, loaded / count);
+            recompute();
+          };
+          preload.src = frameSrc(base, i);
+        }
+        return;
+      }
+
+      const video = videoRefs.current[scene.id];
+      if (!video) return;
+      fractions.set(scene.id, 0);
+
+      // Scenes converted to frames on mobile render no static <source> at
+      // all (see CinematicScene), so on desktop there's nothing for the
+      // browser to have discovered on its own — wire it up here instead.
+      if (scene.mobileFrames && !video.src) {
+        video.src = scene.desktopSrc;
+        video.load();
+      }
+
+      const checkBuffered = () => {
+        fractions.set(scene.id, isFullyBuffered(video) ? 1 : 0);
+        recompute();
+      };
+
       if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
         prime(video);
       } else {
@@ -173,16 +261,19 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         });
       }
       video.addEventListener("progress", checkBuffered);
+      cleanups.push(() =>
+        video.removeEventListener("progress", checkBuffered),
+      );
+      checkBuffered();
     });
 
     // A flaky connection should not strand the homepage behind the loader.
     const timeoutId = window.setTimeout(finish, 8000);
-    checkBuffered();
+    recompute();
 
     return () => {
-      videos.forEach((video) =>
-        video.removeEventListener("progress", checkBuffered),
-      );
+      disposed = true;
+      cleanups.forEach((cleanup) => cleanup());
       window.clearTimeout(timeoutId);
     };
   }, []);
@@ -325,6 +416,9 @@ export function CinematicStage({ locale }: { locale: Locale }) {
               }}
               onVideoRef={(element) => {
                 videoRefs.current[scene.id] = element;
+              }}
+              onFrameImgRef={(element) => {
+                frameImgRefs.current[scene.id] = element;
               }}
               onTextRef={(element) => {
                 textRefs.current[scene.id] = element;

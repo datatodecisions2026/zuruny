@@ -5,6 +5,12 @@
  * The CinematicStage iterates this list and drives playback/opacity from it.
  */
 
+export interface FrameSequence {
+  /** Frames live at `${base}/f001.webp` … `f${count}.webp`. */
+  base: string;
+  count: number;
+}
+
 export interface StoryScene {
   id: "idle" | "intro" | "canopy" | "oilDrop";
   /** Scroll progress at which this scene starts becoming active. 0-1. */
@@ -13,7 +19,13 @@ export interface StoryScene {
   scrollEnd: number;
   side?: "left" | "right";
   desktopSrc: string;
-  mobileSrc: string;
+  /** Mobile video source. Only the idle loop still plays as video on mobile. */
+  mobileSrc?: string;
+  /**
+   * Mobile-only WebP frame sequence, scrubbed by swapping the image instead
+   * of seeking a video. Sidesteps keyframe/decoder seek cost entirely.
+   */
+  mobileFrames?: FrameSequence;
   /** Muted looping idle video vs scroll-driven scene. */
   loop: boolean;
 }
@@ -34,7 +46,7 @@ export const SCENES: StoryScene[] = [
     side: "left",
     loop: false,
     desktopSrc: "/hero_scenes/tree_intro_new.mp4",
-    mobileSrc: "/hero_scenes/tree_intro_mobile_new.mp4",
+    mobileFrames: { base: "/hero_frames/intro", count: 36 },
   },
   {
     id: "canopy",
@@ -43,7 +55,7 @@ export const SCENES: StoryScene[] = [
     side: "right",
     loop: false,
     desktopSrc: "/hero_scenes/tree_canopy_new.mp4",
-    mobileSrc: "/hero_scenes/tree_canopy_mobile_new.mp4",
+    mobileFrames: { base: "/hero_frames/canopy", count: 24 },
   },
   {
     id: "oilDrop",
@@ -52,7 +64,7 @@ export const SCENES: StoryScene[] = [
     side: "left",
     loop: false,
     desktopSrc: "/hero_scenes/oil_drop_new.mp4",
-    mobileSrc: "/hero_scenes/oil_drop_mobile_new.mp4",
+    mobileFrames: { base: "/hero_frames/oilDrop", count: 24 },
   },
 ];
 
