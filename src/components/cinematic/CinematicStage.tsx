@@ -84,19 +84,17 @@ export function CinematicStage({ locale }: { locale: Locale }) {
 
       if (!scene.loop && scene.mobileFrames && !isDesktopRef.current) {
         if (frameImg) {
+          // No easing here on purpose: unlike a video seek, a frame swap's
+          // cost doesn't depend on how far it jumps, only on how many swaps
+          // happen — so easing through every intermediate frame between the
+          // last position and this one is pure extra decode work for no
+          // benefit. Jump straight to whatever frame the scroll maps to.
           const rawLocal = scenePlaybackProgress(scene, progress);
-          const easedLocal = easeLocalProgress(
-            easedProgressRef.current,
-            scene.id,
-            rawLocal,
-          );
           const { base, count } = scene.mobileFrames;
           const frameIndex = Math.min(
             count,
-            Math.max(1, Math.round(easedLocal * (count - 1)) + 1),
+            Math.max(1, Math.round(rawLocal * (count - 1)) + 1),
           );
-          // Images have no decoder-seek cost, so there's no need to gate
-          // this behind a "still loading" check the way video does.
           if (frameImg.dataset.frame !== String(frameIndex)) {
             frameImg.dataset.frame = String(frameIndex);
             frameImg.src = frameSrc(base, frameIndex);
