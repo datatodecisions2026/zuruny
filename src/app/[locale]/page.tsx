@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { CinematicStage } from "@/components/cinematic/CinematicStage";
+import { MobileOilHero } from "@/components/cinematic/MobileOilHero";
 import { Ledger } from "@/components/Ledger";
 import { isLocale } from "@/lib/i18n";
 import { getLiveProducts, getNamedProducts } from "@/lib/products";
@@ -20,6 +21,7 @@ export default async function HomePage({
   return (
     <main id="main">
       <CinematicStage locale={locale} />
+      <MobileOilHero locale={locale} />
       <Ledger locale={locale} live={live} named={named} />
     </main>
   );

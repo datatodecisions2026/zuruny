@@ -11,14 +11,12 @@ export function CinematicScene({
   copy,
   onLayerRef,
   onVideoRef,
-  onFrameImgRef,
   onTextRef,
 }: {
   scene: StoryScene;
   copy: CinematicCopy;
   onLayerRef: (element: HTMLDivElement | null) => void;
   onVideoRef: (element: HTMLVideoElement | null) => void;
-  onFrameImgRef: (element: HTMLImageElement | null) => void;
   onTextRef: (element: HTMLDivElement | null) => void;
 }) {
   return (
@@ -31,50 +29,14 @@ export function CinematicScene({
       <video
         ref={onVideoRef}
         aria-hidden="true"
-        className={
-          scene.mobileFrames
-            ? "hidden size-full object-cover md:block"
-            : "size-full object-cover"
-        }
+        className="size-full object-cover"
         muted
         loop={scene.loop}
         playsInline
-        preload={scene.mobileFrames ? "none" : "auto"}
+        preload="auto"
       >
-        {/* Scenes with a mobile frame sequence get no static source at
-            all — the browser would otherwise have no reason not to fetch
-            this desktop file on a phone. CinematicStage wires .src in
-            imperatively once it's confirmed we're actually on desktop. */}
-        {!scene.mobileFrames && (
-          <>
-            {scene.mobileSrc && (
-              <source
-                media="(max-width: 767px)"
-                src={scene.mobileSrc}
-                type="video/mp4"
-              />
-            )}
-            <source src={scene.desktopSrc} type="video/mp4" />
-          </>
-        )}
+        <source src={scene.desktopSrc} type="video/mp4" />
       </video>
-
-      {scene.mobileFrames && (
-        // CinematicStage mutates .src imperatively at scroll rate; next/image's
-        // own pipeline (srcset, blur-up, lazy load) would fight that, not help it.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          ref={onFrameImgRef}
-          alt=""
-          aria-hidden="true"
-          className="size-full object-cover md:hidden"
-          // Frames are pre-decoded during preload (see CinematicStage), so
-          // there's nothing expensive left for an async decode to defer —
-          // "sync" just tells the browser to paint the swap immediately
-          // rather than holding it for a later task.
-          decoding="sync"
-        />
-      )}
 
       {(copy.eyebrow || copy.title || copy.body) && (
         <div
