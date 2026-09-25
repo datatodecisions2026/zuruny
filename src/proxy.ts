@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { LOCALES, DEFAULT_LOCALE } from "@/lib/i18n";
-import { REGION_HEADER, regionFromCountry } from "@/lib/region";
+import { REGION_HEADER, detectRegion } from "@/lib/region";
 
 /**
  * Two jobs, both cheap, both resolved into request headers that the server
  * components read.
  *
- * 1. Region. Vercel puts the visitor's country on `x-vercel-ip-country`. That
- *    becomes Lebanon or International here, once, and there is no cookie and
- *    no override: pricing is not something a visitor gets to choose.
+ * 1. Region. Resolved from whichever country header the host provides —
+ *    Vercel, Cloudflare, or a reverse proxy — and turned into Lebanon or
+ *    International here, once. No cookie and no override: pricing is not
+ *    something a visitor gets to choose.
  *
  * 2. Locale. Routes live under `app/[locale]/`, but English keeps the bare
  *    URL: `/shop`, not `/en/shop`. A rewrite (not a redirect) maps the bare
@@ -27,7 +28,17 @@ export function proxy(request: NextRequest) {
     LOCALES.find((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)) ??
     DEFAULT_LOCALE;
 
-  const region = regionFromCountry(request.headers.get("x-vercel-ip-country"));
+  /* Host-agnostic: Vercel, Cloudflare or a configured reverse proxy. If no
+     host supplies a country at all, every visitor is priced as international
+     — correct as a fallback, but on a Lebanese shop it means nobody local
+     ever sees the local price, so it is worth saying out loud once. */
+  const { region, headerUsed } = detectRegion(request.headers);
+  if (!headerUsed && process.env.NODE_ENV === "production") {
+    console.warn(
+      "[zuruny] No country header on this request — pricing everyone as INTL. " +
+        "Put Cloudflare in front, or have the proxy set x-geo-country.",
+    );
+  }
 
   // The root layout owns <html lang> but never sees route params, and pricing
   // must not be a cookie, so both ride along as request headers.

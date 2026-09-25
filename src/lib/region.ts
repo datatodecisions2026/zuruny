@@ -48,10 +48,48 @@ export function maybePriceForRegion(
 }
 
 /**
- * Vercel gives us the visitor's country. Only Lebanon gets local pricing, and
- * anything unknown falls through to international — the safer default, since
- * under-quoting means eating the shipping difference on a real order.
+ * Headers that carry the visitor's country, in priority order.
+ *
+ * Deliberately not tied to one host. `x-vercel-ip-country` only exists on
+ * Vercel; deploying anywhere else made every request fall through to
+ * international, which silently charges Lebanese customers 2.5x. Cloudflare
+ * sets `cf-ipcountry`, and several reverse proxies can be configured to set
+ * one of the generic names.
+ */
+const COUNTRY_HEADERS = [
+  "x-vercel-ip-country",
+  "cf-ipcountry",
+  "x-geo-country",
+  "x-country-code",
+] as const;
+
+/**
+ * Only Lebanon gets local pricing. Anything unknown falls through to
+ * international — the safer default, since under-quoting means eating the
+ * freight difference on a real order.
  */
 export function regionFromCountry(country: string | null | undefined): Region {
-  return country?.toUpperCase() === "LB" ? "LB" : "INTL";
+  return country?.trim().toUpperCase() === "LB" ? "LB" : "INTL";
+}
+
+/**
+ * Reads the country from whichever header the current host provides.
+ *
+ * Returns the region AND whether a country was actually found, because
+ * "nobody told us" and "we were told it is France" both produce INTL and only
+ * one of them is a misconfiguration worth shouting about.
+ */
+export function detectRegion(headers: Headers): {
+  region: Region;
+  country: string | null;
+  headerUsed: string | null;
+} {
+  for (const name of COUNTRY_HEADERS) {
+    const value = headers.get(name)?.trim();
+    // Cloudflare sends "XX" for anonymising proxies and "T1" for Tor.
+    if (value && value.length === 2 && !["XX", "T1"].includes(value.toUpperCase())) {
+      return { region: regionFromCountry(value), country: value.toUpperCase(), headerUsed: name };
+    }
+  }
+  return { region: "INTL", country: null, headerUsed: null };
 }
