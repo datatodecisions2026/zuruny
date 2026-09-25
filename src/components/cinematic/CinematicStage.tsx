@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   SCENES,
   brandExitMotion,
@@ -9,6 +15,7 @@ import {
   sceneOpacity,
   scenePlaybackProgress,
   clamp,
+  type StoryScene,
 } from "@/data/homepageStory";
 import { getDict, type Locale } from "@/lib/i18n";
 import {
@@ -23,6 +30,66 @@ const SEEK_THRESHOLD_SECONDS = 0.04;
 // target toward the scroll-derived position. Lower = more glide, higher =
 // more 1:1 with the raw scroll.
 const SEEK_EASE = 0.18;
+// requestAnimationFrame fires at the display's native refresh rate — up to
+// 144Hz on some phones — but scroll-derived content (a video seek, a frame
+// swap) has no perceptual benefit from updating faster than ~60fps, only
+// twice the compositing cost. Cap the scroll-update loop here regardless
+// of platform.
+const FRAME_BUDGET_MS = 1000 / 60;
+// If mobile frame preload+decode takes longer than this, the device is
+// likely too limited to composite four simultaneously cross-fading layers
+// smoothly — fall back to one scene mounted at a time with a hard cut
+// instead of a blend. A capable device on a normal connection clears
+// preload well under this; tune if real-world testing says otherwise.
+// This alone isn't sufficient: decode is often offloaded to a separate
+// thread/process and can stay fast even when the GPU can't keep up with
+// compositing, which is the actual bottleneck — see probeCompositingMs.
+const SIMPLIFIED_THRESHOLD_MS = 3500;
+// Same idea, for the compositing probe below: a healthy device clears 24
+// frames of four-layer alpha-blending in well under a second (~400ms at
+// 60fps). A device that can't is a direct, load-bearing signal — this is
+// the actual shape of work the hero does, not a proxy for it.
+const COMPOSITING_THRESHOLD_MS = 900;
+
+/**
+ * Direct signal for GPU compositing headroom: stacks a few translucent
+ * full-viewport layers — the same shape of work as the hero's own
+ * crossfade — and times how long the browser actually takes to composite
+ * a short burst of opacity changes across them. Runs invisibly (opacity
+ * ~0, negative z-index) alongside preload, so it costs nothing extra on a
+ * capable device.
+ */
+function probeCompositingMs(frameCount = 24): Promise<number> {
+  return new Promise((resolve) => {
+    const host = document.createElement("div");
+    host.style.cssText =
+      "position:fixed;inset:0;z-index:-1;opacity:0.01;pointer-events:none;";
+    const layers = Array.from({ length: 4 }, (_, i) => {
+      const layer = document.createElement("div");
+      layer.style.cssText = `position:absolute;inset:0;background:linear-gradient(${i * 45}deg,#4f0d0f,#12100e);`;
+      host.appendChild(layer);
+      return layer;
+    });
+    document.body.appendChild(host);
+
+    const start = performance.now();
+    let frame = 0;
+    const tick = () => {
+      layers.forEach((layer, i) => {
+        layer.style.opacity = String((Math.sin(frame / 3 + i) + 1) / 2);
+      });
+      frame += 1;
+      if (frame < frameCount) {
+        requestAnimationFrame(tick);
+        return;
+      }
+      const elapsed = performance.now() - start;
+      host.remove();
+      resolve(elapsed);
+    };
+    requestAnimationFrame(tick);
+  });
+}
 
 function frameSrc(base: string, index: number): string {
   return `${base}/f${String(index).padStart(3, "0")}.webp`;
@@ -38,6 +105,91 @@ function easeLocalProgress(
   const eased = previous + (rawLocal - previous) * SEEK_EASE;
   store[sceneId] = eased;
   return eased;
+}
+
+/** Which scene is "active" under a hard-cut policy — no overlap, no blend. */
+function hardCutSceneIndex(progress: number): number {
+  for (let i = 0; i < SCENES.length; i++) {
+    const next = SCENES[i + 1];
+    if (!next) return i;
+    const cutover = (SCENES[i].scrollEnd + next.scrollStart) / 2;
+    if (progress < cutover) return i;
+  }
+  return SCENES.length - 1;
+}
+
+/** Drives a single scene's video seek or frame swap. Shared by the full
+ * crossfade path (one call per scene) and the simplified hard-cut path
+ * (one call for whichever scene is currently mounted). */
+function driveSceneScrub(
+  scene: StoryScene,
+  progress: number,
+  isDesktop: boolean,
+  video: HTMLVideoElement | null,
+  frameImg: HTMLImageElement | null,
+  easedProgress: Record<string, number>,
+): void {
+  if (scene.loop) return;
+
+  if (scene.mobileFrames && !isDesktop) {
+    if (!frameImg) return;
+    // No easing here on purpose: unlike a video seek, a frame swap's cost
+    // doesn't depend on how far it jumps, only on how many swaps happen —
+    // so easing through every intermediate frame is pure extra decode
+    // work for no benefit. Jump straight to whatever frame the scroll
+    // position maps to.
+    const rawLocal = scenePlaybackProgress(scene, progress);
+    const { base, count } = scene.mobileFrames;
+    const frameIndex = Math.min(
+      count,
+      Math.max(1, Math.round(rawLocal * (count - 1)) + 1),
+    );
+    if (frameImg.dataset.frame !== String(frameIndex)) {
+      frameImg.dataset.frame = String(frameIndex);
+      frameImg.src = frameSrc(base, frameIndex);
+    }
+    return;
+  }
+
+  if (
+    !video ||
+    video.readyState < HTMLMediaElement.HAVE_METADATA ||
+    // A seek already in flight has a decoder working on it; queuing
+    // another on top makes weak hardware fall behind and stutter through
+    // a backlog. Skip this tick — the next rAF re-reads the live scroll
+    // position, so it always resumes at the current target instead of
+    // working through stale ones.
+    video.seeking
+  ) {
+    return;
+  }
+
+  const rawLocal = scenePlaybackProgress(scene, progress);
+  const easedLocal = easeLocalProgress(easedProgress, scene.id, rawLocal);
+  const target = easedLocal * video.duration;
+  if (
+    Number.isFinite(target) &&
+    Math.abs(video.currentTime - target) > SEEK_THRESHOLD_SECONDS
+  ) {
+    video.currentTime = target;
+  }
+}
+
+/** Drives a single scene's copy motion (opacity + parallax offsets). */
+function driveSceneCopy(
+  scene: StoryScene,
+  progress: number,
+  copy: HTMLDivElement | null,
+): void {
+  if (!copy) return;
+  const motion = sceneCopyMotion(scene, progress);
+  copy.style.opacity = String(motion.opacity);
+  copy
+    .querySelectorAll<HTMLElement>("[data-parallax-depth]")
+    .forEach((element) => {
+      const depth = Number(element.dataset.parallaxDepth ?? "1");
+      element.style.transform = `translate3d(${motion.x * depth}px, ${motion.y * depth}px, 0)`;
+    });
 }
 
 /**
@@ -59,6 +211,13 @@ export function CinematicStage({ locale }: { locale: Locale }) {
   // CinematicScene) so nothing downloads there; this flag is what tells
   // renderProgress and the loader effect which path a scene actually took.
   const isDesktopRef = useRef(true);
+  // Decided once, after preload, from how long that actually took (see the
+  // loader effect). simplifiedRef is what renderProgress reads every tick;
+  // the state pair is only for the render-time choice of JSX below.
+  const simplifiedRef = useRef(false);
+  const [simplified, setSimplified] = useState(false);
+  const activeSceneIndexRef = useRef(0);
+  const [activeSceneIndex, setActiveSceneIndex] = useState(0);
   const [ready, setReady] = useState(false);
   const t = getDict(locale);
 
@@ -70,88 +229,74 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       brand.style.transform = `translate3d(0, ${motion.y}px, 0) scale(${motion.scale})`;
     }
 
-    SCENES.forEach((scene, index) => {
-      const opacity = sceneOpacity(SCENES, index, progress);
+    if (simplifiedRef.current) {
+      // Hard-cut mode: exactly one scene is ever mounted (see the JSX
+      // below), so there's no opacity/crossfade math and no other scene's
+      // refs to touch — just figure out which one should be showing and
+      // drive its own scrub.
+      const idx = hardCutSceneIndex(progress);
+      if (idx !== activeSceneIndexRef.current) {
+        activeSceneIndexRef.current = idx;
+        setActiveSceneIndex(idx);
+      }
+
+      const scene = SCENES[idx];
       const layer = layerRefs.current[scene.id];
-      const video = videoRefs.current[scene.id];
-      const frameImg = frameImgRefs.current[scene.id];
-      const copy = textRefs.current[scene.id];
-
       if (layer) {
-        layer.style.opacity = String(opacity);
-        layer.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
+        layer.style.opacity = "1";
+        layer.style.pointerEvents = "auto";
       }
 
-      if (scene.loop && video) {
-        // Cross-fading a live, still-decoding video against the next
-        // scene glitches on some mobile GPUs — the video decode surface
-        // composites through a different path than a plain image, and
-        // blending mid-decode is where that shows up. A still frame
-        // blends cleanly, and the crossfade window is short enough
-        // (~1/10 of a screen of scroll) that freezing it is invisible.
-        if (opacity < 1) {
-          if (!video.paused) video.pause();
-        } else if (video.paused) {
-          void video.play().catch(() => {});
+      const video = videoRefs.current[scene.id];
+      if (scene.loop && video && video.paused) {
+        void video.play().catch(() => {});
+      }
+
+      driveSceneScrub(
+        scene,
+        progress,
+        isDesktopRef.current,
+        video,
+        frameImgRefs.current[scene.id],
+        easedProgressRef.current,
+      );
+      driveSceneCopy(scene, progress, textRefs.current[scene.id]);
+    } else {
+      SCENES.forEach((scene, index) => {
+        const opacity = sceneOpacity(SCENES, index, progress);
+        const layer = layerRefs.current[scene.id];
+        const video = videoRefs.current[scene.id];
+
+        if (layer) {
+          layer.style.opacity = String(opacity);
+          layer.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
         }
-      }
 
-      if (!scene.loop && scene.mobileFrames && !isDesktopRef.current) {
-        if (frameImg) {
-          // No easing here on purpose: unlike a video seek, a frame swap's
-          // cost doesn't depend on how far it jumps, only on how many swaps
-          // happen — so easing through every intermediate frame between the
-          // last position and this one is pure extra decode work for no
-          // benefit. Jump straight to whatever frame the scroll maps to.
-          const rawLocal = scenePlaybackProgress(scene, progress);
-          const { base, count } = scene.mobileFrames;
-          const frameIndex = Math.min(
-            count,
-            Math.max(1, Math.round(rawLocal * (count - 1)) + 1),
-          );
-          if (frameImg.dataset.frame !== String(frameIndex)) {
-            frameImg.dataset.frame = String(frameIndex);
-            frameImg.src = frameSrc(base, frameIndex);
+        if (scene.loop && video) {
+          // Cross-fading a live, still-decoding video against the next
+          // scene glitches on some mobile GPUs — the video decode surface
+          // composites through a different path than a plain image, and
+          // blending mid-decode is where that shows up. A still frame
+          // blends cleanly, and the crossfade window is short enough
+          // (~1/10 of a screen of scroll) that freezing it is invisible.
+          if (opacity < 1) {
+            if (!video.paused) video.pause();
+          } else if (video.paused) {
+            void video.play().catch(() => {});
           }
         }
-      } else if (
-        video &&
-        !scene.loop &&
-        video.readyState >= HTMLMediaElement.HAVE_METADATA &&
-        // A seek already in flight has a decoder working on it; queuing
-        // another on top makes weak hardware fall behind and stutter
-        // through a backlog. Skip this tick — the next rAF re-reads the
-        // live scroll position, so it always resumes at the current
-        // target instead of working through stale ones.
-        !video.seeking
-      ) {
-        const rawLocal = scenePlaybackProgress(scene, progress);
-        const easedLocal = easeLocalProgress(
+
+        driveSceneScrub(
+          scene,
+          progress,
+          isDesktopRef.current,
+          video,
+          frameImgRefs.current[scene.id],
           easedProgressRef.current,
-          scene.id,
-          rawLocal,
         );
-
-        const target = easedLocal * video.duration;
-        if (
-          Number.isFinite(target) &&
-          Math.abs(video.currentTime - target) > SEEK_THRESHOLD_SECONDS
-        ) {
-          video.currentTime = target;
-        }
-      }
-
-      if (copy) {
-        const motion = sceneCopyMotion(scene, progress);
-        copy.style.opacity = String(motion.opacity);
-        copy
-          .querySelectorAll<HTMLElement>("[data-parallax-depth]")
-          .forEach((element) => {
-            const depth = Number(element.dataset.parallaxDepth ?? "1");
-            element.style.transform = `translate3d(${motion.x * depth}px, ${motion.y * depth}px, 0)`;
-          });
-      }
-    });
+        driveSceneCopy(scene, progress, textRefs.current[scene.id]);
+      });
+    }
 
     const endCta = endCtaRef.current;
     if (endCta) {
@@ -183,15 +328,43 @@ export function CinematicStage({ locale }: { locale: Locale }) {
     let settled = false;
     let disposed = false;
 
+    // Reduced-motion users never scroll-scrub (see the third effect below
+    // — it renders progress 0 once and stops), so crossfade-vs-hard-cut is
+    // moot for them; skip paying for the probe. Same for desktop, which
+    // isn't the target of either signal.
+    const compositingProbe =
+      isDesktopRef.current || reducedMotion
+        ? Promise.resolve(0)
+        : probeCompositingMs();
+
     // The 8s fallback below may still fire after this runs; `settled`
     // makes that a no-op rather than needing to cancel it here.
     const finish = () => {
       if (settled) return;
       settled = true;
-      const wait = Math.max(0, minVisibleMs - (Date.now() - shownAt));
-      window.setTimeout(() => {
-        if (!disposed) setReady(true);
-      }, wait);
+      const elapsed = Date.now() - shownAt;
+
+      void compositingProbe.then((compositingMs) => {
+        // Two independent signals, either one is sufficient: real
+        // preload+decode time (network- or decode-bound) and the
+        // compositing probe (GPU-bound — the actual bottleneck this phone
+        // has). Static properties like core count or RAM don't capture
+        // this either: this phone's 8 cores and 8GB RAM read as "fine"
+        // while its 2-shader-core GPU is anything but.
+        if (
+          !isDesktopRef.current &&
+          (elapsed > SIMPLIFIED_THRESHOLD_MS ||
+            compositingMs > COMPOSITING_THRESHOLD_MS)
+        ) {
+          simplifiedRef.current = true;
+          setSimplified(true);
+        }
+
+        const wait = Math.max(0, minVisibleMs - elapsed);
+        window.setTimeout(() => {
+          if (!disposed) setReady(true);
+        }, wait);
+      });
     };
 
     const prime = (video: HTMLVideoElement) => {
@@ -219,11 +392,20 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       if (disposed) return;
       const values = [...fractions.values()];
       const fill = loaderFillRef.current;
-      if (fill && values.length > 0) {
-        const avg = values.reduce((a, b) => a + b, 0) / values.length;
-        fill.style.transform = `scaleX(${avg})`;
+      // Divide by SCENES.length, not values.length/fractions.size — this
+      // runs mid-loop too (checkBuffered fires synchronously for video
+      // scenes), when the map may only hold entries for scenes visited so
+      // far. Dividing by however many happen to be in the map yet is what
+      // let the average read 100% — and completion below trivially pass —
+      // after just the FIRST scene, before the other three had even
+      // started their own preload.
+      if (fill) {
+        const total = values.reduce((a, b) => a + b, 0);
+        fill.style.transform = `scaleX(${total / SCENES.length})`;
       }
-      if (values.length > 0 && values.every((v) => v >= 1)) finish();
+      if (fractions.size === SCENES.length && values.every((v) => v >= 1)) {
+        finish();
+      }
     };
 
     SCENES.forEach((scene) => {
@@ -308,6 +490,16 @@ export function CinematicStage({ locale }: { locale: Locale }) {
     };
   }, [ready]);
 
+  // A hard cut mounts a fresh scene whose layer starts at its JSX default
+  // opacity (0 for anything but idle) until the next scroll tick corrects
+  // it. Set it before paint so switching scenes never flashes invisible
+  // for a frame.
+  useLayoutEffect(() => {
+    if (!simplified) return;
+    const layer = layerRefs.current[SCENES[activeSceneIndex].id];
+    if (layer) layer.style.opacity = "1";
+  }, [simplified, activeSceneIndex]);
+
   useEffect(() => {
     const container = containerRef.current;
     const idle = videoRefs.current.idle;
@@ -343,10 +535,21 @@ export function CinematicStage({ locale }: { locale: Locale }) {
     ).matches;
     let viewportHeight = window.innerHeight;
     let laidOutWidth = window.innerWidth;
+    let lastUpdateAt = 0;
 
-    const update = () => {
+    const update = (timestamp: number) => {
       rafRef.current = null;
       if (!active) return;
+
+      // High-refresh-rate phones fire rAF up to 144 times a second; scroll-
+      // derived content has no perceptual reason to update faster than
+      // ~60fps, only double the compositing cost. Skip this tick and
+      // re-check next frame rather than doing the full update.
+      if (timestamp - lastUpdateAt < FRAME_BUDGET_MS) {
+        scheduleUpdate();
+        return;
+      }
+      lastUpdateAt = timestamp;
 
       const rect = container.getBoundingClientRect();
       const scrollable = rect.height - viewportHeight;
@@ -408,6 +611,26 @@ export function CinematicStage({ locale }: { locale: Locale }) {
     };
   }, [renderProgress]);
 
+  const renderScene = (scene: StoryScene) => (
+    <CinematicScene
+      key={scene.id}
+      scene={scene}
+      copy={t.cinematic[scene.id]}
+      onLayerRef={(element) => {
+        layerRefs.current[scene.id] = element;
+      }}
+      onVideoRef={(element) => {
+        videoRefs.current[scene.id] = element;
+      }}
+      onFrameImgRef={(element) => {
+        frameImgRefs.current[scene.id] = element;
+      }}
+      onTextRef={(element) => {
+        textRefs.current[scene.id] = element;
+      }}
+    />
+  );
+
   return (
     <section
       ref={containerRef}
@@ -422,29 +645,9 @@ export function CinematicStage({ locale }: { locale: Locale }) {
       }}
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
-        {SCENES.map((scene) => {
-          const copy = t.cinematic[scene.id];
-
-          return (
-            <CinematicScene
-              key={scene.id}
-              scene={scene}
-              copy={copy}
-              onLayerRef={(element) => {
-                layerRefs.current[scene.id] = element;
-              }}
-              onVideoRef={(element) => {
-                videoRefs.current[scene.id] = element;
-              }}
-              onFrameImgRef={(element) => {
-                frameImgRefs.current[scene.id] = element;
-              }}
-              onTextRef={(element) => {
-                textRefs.current[scene.id] = element;
-              }}
-            />
-          );
-        })}
+        {simplified
+          ? renderScene(SCENES[activeSceneIndex])
+          : SCENES.map(renderScene)}
 
         <CinematicBrand motionRef={brandRef} />
         <CinematicEndCta locale={locale} containerRef={endCtaRef} />
