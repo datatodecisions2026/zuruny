@@ -82,6 +82,20 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         layer.style.pointerEvents = opacity > 0.5 ? "auto" : "none";
       }
 
+      if (scene.loop && video) {
+        // Cross-fading a live, still-decoding video against the next
+        // scene glitches on some mobile GPUs — the video decode surface
+        // composites through a different path than a plain image, and
+        // blending mid-decode is where that shows up. A still frame
+        // blends cleanly, and the crossfade window is short enough
+        // (~1/10 of a screen of scroll) that freezing it is invisible.
+        if (opacity < 1) {
+          if (!video.paused) video.pause();
+        } else if (video.paused) {
+          void video.play().catch(() => {});
+        }
+      }
+
       if (!scene.loop && scene.mobileFrames && !isDesktopRef.current) {
         if (frameImg) {
           // No easing here on purpose: unlike a video seek, a frame swap's
