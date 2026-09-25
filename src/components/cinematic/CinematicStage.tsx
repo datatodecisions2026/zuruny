@@ -221,15 +221,22 @@ export function CinematicStage({ locale }: { locale: Locale }) {
         const frameImg = frameImgRefs.current[scene.id];
         if (frameImg) frameImg.src = frameSrc(base, 1);
 
+        const settle = () => {
+          if (disposed) return;
+          loaded += 1;
+          fractions.set(scene.id, loaded / count);
+          recompute();
+        };
+
         for (let i = 1; i <= count; i++) {
           const preload = new Image();
-          preload.onload = preload.onerror = () => {
-            if (disposed) return;
-            loaded += 1;
-            fractions.set(scene.id, loaded / count);
-            recompute();
-          };
           preload.src = frameSrc(base, i);
+          // decode() resolves only once the bitmap is actually rasterized,
+          // not just downloaded — onload alone doesn't guarantee that. The
+          // decode cache it populates is keyed by URL, so the visible <img>
+          // reusing this same src at scroll time hits that cache instead of
+          // decoding cold, which is what was showing as a black flash.
+          preload.decode().then(settle, settle);
         }
         return;
       }

@@ -68,7 +68,11 @@ export function CinematicScene({
           alt=""
           aria-hidden="true"
           className="size-full object-cover md:hidden"
-          decoding="async"
+          // Frames are pre-decoded during preload (see CinematicStage), so
+          // there's nothing expensive left for an async decode to defer —
+          // "sync" just tells the browser to paint the swap immediately
+          // rather than holding it for a later task.
+          decoding="sync"
         />
       )}
 
