@@ -20,14 +20,14 @@ export function useJournal(root: RefObject<HTMLDivElement | null>, reading: bool
       gsap.registerPlugin(ScrollTrigger);
       const media = gsap.matchMedia();
       cleanup = () => media.revert();
-      media.add({ desktop: "(min-width: 1024px)", mobile: "(max-width: 1023px)", reduce: "(prefers-reduced-motion: reduce)", short: "(max-height: 649px)" }, (context) => {
+      media.add({ desktop: "(min-width: 768px)", mobile: "(max-width: 767px)", reduce: "(prefers-reduced-motion: reduce)" }, (context) => {
         const leaves = Array.from(element.querySelectorAll<HTMLElement>("[data-leaf]"));
         const reset = () => {
           delete element.dataset.enhanced;
           controls.current = null;
           leaves.forEach((leaf) => { leaf.inert = false; leaf.removeAttribute("aria-hidden"); });
         };
-        if (reading || context.conditions?.reduce || context.conditions?.short) {
+        if (reading || context.conditions?.reduce) {
           reset();
           const observer = new IntersectionObserver((entries) => {
             const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
