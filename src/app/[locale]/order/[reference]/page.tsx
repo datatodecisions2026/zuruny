@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { verifyTransaction, paystackConfigured } from "@/lib/paystack";
 import { getSessionUser } from "@/lib/auth";
 import { getDict, isLocale, localePath } from "@/lib/i18n";
@@ -29,14 +29,15 @@ export default async function OrderPage({
   const t = getDict(locale);
 
   const user = await getSessionUser();
-  const supabase = await getSupabaseServer();
 
-  // RLS means this returns nothing unless the order belongs to this user.
-  const { data: order } = (await supabase
-    ?.from("zuruny_orders")
-    .select("reference, status, subtotal_cents, created_at")
-    .eq("reference", reference)
-    .maybeSingle()) ?? { data: null };
+  // Only the customer who placed the order (or an admin) may see it.
+  const [order] = user
+    ? await query<{ reference: string; status: string; subtotal_cents: number; created_at: string }>(
+        `select reference, status, subtotal_cents, created_at from zuruny_orders
+          where reference = $1 and ($2 or user_id = $3)`,
+        [reference, user.isAdmin, user.id],
+      )
+    : [];
 
   if (!user || !order) {
     return (

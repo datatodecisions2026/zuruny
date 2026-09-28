@@ -6,7 +6,7 @@ import { AuthForms } from "@/components/AuthForms";
 import { SignOutButton } from "@/components/SignOutButton";
 import { getSessionUser } from "@/lib/auth";
 import { getMyOrders } from "@/lib/orders";
-import { supabaseConfigured } from "@/lib/supabase/server";
+import { dbConfigured } from "@/lib/db";
 import { getDict, isLocale, localePath } from "@/lib/i18n";
 import { formatUSD } from "@/lib/catalog";
 
@@ -29,7 +29,7 @@ export default async function AccountPage({
   if (!isLocale(locale)) notFound();
   const t = getDict(locale);
 
-  if (!supabaseConfigured) {
+  if (!dbConfigured) {
     return (
       <Shell title={t.account.title}>
         <p className="u-measure text-[var(--text-muted)]">

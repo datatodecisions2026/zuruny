@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/auth";
-import { getSupabaseServer } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { getDict, isLocale, localePath } from "@/lib/i18n";
 import { formatUSD } from "@/lib/catalog";
 import { AdminProducts, type AdminProduct } from "@/components/AdminProducts";
@@ -19,13 +19,38 @@ export async function generateMetadata({
   return { title: getDict(locale).admin.title, robots: { index: false } };
 }
 
+type ProductRow = {
+  id: number;
+  handle: string;
+  name: string;
+  status: string;
+  kind: string;
+  description: string;
+  description_fr: string | null;
+  zuruny_variants: {
+    id: number;
+    label: string | null;
+    price_cents: number | null;
+    stock: number;
+    available: boolean;
+    position: number;
+  }[];
+};
+type OrderRow = {
+  reference: string;
+  email: string;
+  status: string;
+  region: string;
+  subtotal_cents: number;
+  created_at: string;
+};
+
+
 /**
  * The owner's view.
  *
- * Two gates, deliberately: this page checks the role before rendering, and the
- * database refuses the rows anyway if the check were ever wrong. The RLS
- * policies are the real boundary — this redirect is only there so a customer
- * gets a sensible page instead of an empty table.
+ * The role check below is the only gate: the queries that follow are not
+ * filtered by user, so nothing may run before it.
  */
 export default async function AdminPage({
   params,
@@ -60,54 +85,26 @@ export default async function AdminPage({
     );
   }
 
-  const supabase = await getSupabaseServer();
-
-  const { data: products } = (await supabase
-    ?.from("zuruny_products")
-    .select(
-      "id, handle, name, status, kind, description, description_fr, " +
-        "zuruny_variants(id, label, price_cents, stock, available, position)",
-    )
-    .order("position")) ?? { data: null };
-
-  const { data: orders } = (await supabase
-    ?.from("zuruny_orders")
-    .select("reference, email, status, region, subtotal_cents, created_at")
-    .order("created_at", { ascending: false })
-    .limit(25)) ?? { data: null };
-
-  type ProductRow = {
-    id: number;
-    handle: string;
-    name: string;
-    status: string;
-    kind: string;
-    description: string;
-    description_fr: string | null;
-    zuruny_variants: {
-      id: number;
-      label: string | null;
-      price_cents: number | null;
-      stock: number;
-      available: boolean;
-      position: number;
-    }[];
-  };
-  type OrderRow = {
-    reference: string;
-    email: string;
-    status: string;
-    region: string;
-    subtotal_cents: number;
-    created_at: string;
-  };
-
-  const productRows = (products as ProductRow[] | null) ?? [];
+  const [products, orders] = await Promise.all([
+    query<ProductRow>(
+      `select p.id, p.handle, p.name, p.status, p.kind, p.description, p.description_fr,
+              coalesce((select json_agg(json_build_object(
+                          'id', v.id, 'label', v.label, 'price_cents', v.price_cents,
+                          'stock', v.stock, 'available', v.available, 'position', v.position))
+                        from zuruny_variants v where v.product_id = p.id), '[]'::json)
+                as zuruny_variants
+         from zuruny_products p order by p.position`,
+    ),
+    query<OrderRow>(
+      `select reference, email, status, region, subtotal_cents, created_at
+         from zuruny_orders order by created_at desc limit 25`,
+    ),
+  ]);
 
   /* Flattened onto the first variant. Multi-size products (Najibe, Mimi) keep
      every variant in the database; this editor edits the first, which is what
      the single-size products the owner actually sells need today. */
-  const editable: AdminProduct[] = productRows.map((p) => {
+  const editable: AdminProduct[] = products.map((p) => {
     const first = [...p.zuruny_variants].sort((a, b) => a.position - b.position)[0];
     return {
       id: p.id,
@@ -122,7 +119,6 @@ export default async function AdminPage({
       stock: first?.stock ?? 0,
     };
   });
-  const orderRows = (orders as OrderRow[] | null) ?? [];
 
   return (
     <main
@@ -140,7 +136,7 @@ export default async function AdminPage({
         <h2 className="u-display mb-6 text-[length:var(--step-2)] text-cream">
           {t.admin.orders}
         </h2>
-        {orderRows.length === 0 ? (
+        {orders.length === 0 ? (
           <p className="text-[var(--text-muted)]">{t.account.noOrders}</p>
         ) : (
           <div className="overflow-x-auto">
@@ -155,7 +151,7 @@ export default async function AdminPage({
                 </tr>
               </thead>
               <tbody>
-                {orderRows.map((o) => (
+                {orders.map((o) => (
                   <tr key={o.reference} className="border-b border-[var(--rule)]">
                     <Td mono>{o.reference}</Td>
                     <Td>{o.email}</Td>

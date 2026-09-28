@@ -2,7 +2,7 @@
 
 import { headers } from "next/headers";
 import { placeOrder, type BasketLine } from "@/lib/orders";
-import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { query } from "@/lib/db";
 import { initializeTransaction, paystackConfigured } from "@/lib/paystack";
 import { localePath, type Locale } from "@/lib/i18n";
 
@@ -42,8 +42,6 @@ export async function startCheckout(input: {
   const origin = `${proto}://${host}`;
   const callbackUrl = `${origin}${localePath(input.locale, `/order/${reference}`)}`;
 
-  const admin = getSupabaseAdmin();
-
   try {
     const { authorizationUrl, message } = await initializeTransaction({
       email: result.order.email,
@@ -56,25 +54,19 @@ export async function startCheckout(input: {
     if (!authorizationUrl) {
       // The order exists but no payment could be opened for it. Mark it so it
       // does not sit in pending_payment forever looking like an abandoned sale.
-      await admin
-        ?.from("zuruny_orders")
-        .update({ status: "failed" })
-        .eq("reference", reference);
+      await query("update zuruny_orders set status = 'failed' where reference = $1", [reference]);
       console.error("[zuruny] Paystack did not return a checkout URL:", message);
       return { ok: false, error: "payment-unavailable" };
     }
 
-    await admin
-      ?.from("zuruny_orders")
-      .update({ payment_provider: "paystack", payment_reference: reference })
-      .eq("reference", reference);
+    await query(
+      "update zuruny_orders set payment_provider = 'paystack', payment_reference = $1 where reference = $1",
+      [reference],
+    );
 
     return { ok: true, redirectTo: authorizationUrl };
   } catch (error) {
-    await admin
-      ?.from("zuruny_orders")
-      .update({ status: "failed" })
-      .eq("reference", reference);
+    await query("update zuruny_orders set status = 'failed' where reference = $1", [reference]);
     console.error("[zuruny] Paystack initialize threw:", error);
     return { ok: false, error: "payment-unavailable" };
   }
