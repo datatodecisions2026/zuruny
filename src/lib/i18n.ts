@@ -259,6 +259,14 @@ const en = {
       "An account is how you see an order after you have placed it — what you ordered, what it came to, and where it has got to.",
     notConfigured:
       "Accounts are not switched on yet. Orders still reach us by email.",
+    eyebrow: "Zuruny · Private account",
+    signInLead: "Welcome back.",
+    signUpLead: "Take a seat at the table.",
+    newHere: "New to Zuruny?",
+    haveAccount: "Already have an account?",
+    showPassword: "Show",
+    hidePassword: "Hide",
+    caption: "Malvina · Deir Mimas, South Lebanon",
   },
   order: {
     thanksTitle: "Thank you.",
@@ -545,6 +553,14 @@ const fr: typeof en = {
       "Un compte vous permet de suivre une commande après l'avoir passée : ce que vous avez commandé, le montant, et où elle en est.",
     notConfigured:
       "Les comptes ne sont pas encore activés. Les commandes nous parviennent toujours par e-mail.",
+    eyebrow: "Zuruny · Compte privé",
+    signInLead: "Bon retour parmi nous.",
+    signUpLead: "Prenez place à notre table.",
+    newHere: "Nouveau chez Zuruny ?",
+    haveAccount: "Déjà un compte ?",
+    showPassword: "Afficher",
+    hidePassword: "Masquer",
+    caption: "Malvina · Deir Mimas, Liban-Sud",
   },
   order: {
     thanksTitle: "Merci.",

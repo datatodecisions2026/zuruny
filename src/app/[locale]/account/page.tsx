@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthForms } from "@/components/AuthForms";
@@ -42,12 +43,44 @@ export default async function AccountPage({
 
   if (!user) {
     return (
-      <Shell title={t.account.title}>
-        <p className="u-measure mb-12 text-[var(--text-muted)]">
-          {t.account.whyAccount}
-        </p>
-        <AuthForms />
-      </Shell>
+      <main
+        id="main"
+        className="grid items-stretch gap-16 px-[var(--gutter)] pb-[clamp(4rem,10vh,8rem)] pt-36 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] lg:gap-[clamp(4rem,8vw,9rem)]"
+      >
+        <div>
+          <p className="m-intro-item u-mono flex items-center gap-3 text-ochre">
+            <span
+              aria-hidden
+              className="u-emblem size-5"
+              style={{ ["--emblem-src" as string]: "url(/brand/emblem.png)" }}
+            />
+            {t.account.eyebrow}
+          </p>
+          <h1 className="m-intro-item u-display mb-6 mt-6 text-[length:var(--step-3)] text-cream">
+            {t.account.title}
+          </h1>
+          <p className="mb-12 text-[var(--text-muted)]">{t.account.whyAccount}</p>
+          <AuthForms />
+        </div>
+
+        {/* The tins sit on a black sweep, so `contain` lets the frame run to
+            any height without cropping a label. */}
+        <figure className="m-intro-item relative hidden min-h-[40rem] overflow-hidden bg-[#060606] lg:block" style={{ ["--i" as string]: 3 }}>
+          <Image
+            src="/products/malvina-2.png"
+            alt=""
+            fill
+            priority
+            sizes="(min-width: 1024px) 50vw, 0px"
+            className="object-contain p-10 [mask-image:radial-gradient(ellipse_45%_60%_at_center,#000_70%,transparent)]"
+          />
+          <span aria-hidden className="pointer-events-none absolute inset-4 border border-[var(--rule)]" />
+          <figcaption className="u-mono absolute inset-x-8 bottom-8 flex items-center justify-between gap-6 text-[var(--text-muted)]">
+            <span>{t.account.caption}</span>
+            <span className="text-ochre">01 — 05</span>
+          </figcaption>
+        </figure>
+      </main>
     );
   }
 
