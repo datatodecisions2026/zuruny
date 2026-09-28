@@ -1,9 +1,6 @@
 /**
- * Cinematic homepage story configuration — desktop only. Mobile runs a
- * separate, simpler oil-pour-only hero (see MobileOilHero.tsx) with its own
- * GSAP-driven scroll timeline, not this scene list.
- *
- * The CinematicStage iterates this list and drives playback/opacity from it.
+ * Scene list and scroll helpers from the retired video stage. HomeStage still
+ * uses `endCtaMotion` and `clamp`; the rest stays for its tests.
  */
 
 export interface StoryScene {

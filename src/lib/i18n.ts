@@ -165,6 +165,16 @@ const en = {
     title: "From our trees to your table",
     body: "Every bottle begins in the grove — named after people, pressed in named villages, carried from Beirut to kitchens around the world. This is the work before the product.",
   },
+  skot: {
+    title: "The Names",
+    columns: [
+      "Single-origin olive oil and molasses, pressed by named families in named villages in Lebanon.",
+      "Each tin carries the name of someone in our family — and their story, in our own words.",
+    ],
+    cardTitle: "The Grove",
+    cardBody: "Every bottle begins under old trees, then travels from Beirut to kitchens in 29 countries.",
+    filmLabel: "Watch the Zuruny film",
+  },
   cinematic: {
     idle: { eyebrow: "", title: "", body: "" },
     intro: {
@@ -444,6 +454,16 @@ const fr: typeof en = {
   story: {
     title: "De nos oliviers à votre table",
     body: "Chaque bouteille commence dans le verger — prénommée d'après des personnes, pressée dans des villages nommés, expédiée de Beyrouth vers des cuisines du monde entier. Voilà le travail avant le produit.",
+  },
+  skot: {
+    title: "Les Prénoms",
+    columns: [
+      "Huile d'olive et mélasses d'origine unique, pressées par des familles nommées dans des villages nommés du Liban.",
+      "Chaque bidon porte le prénom d'un membre de notre famille — et son histoire, dans nos propres mots.",
+    ],
+    cardTitle: "Le Verger",
+    cardBody: "Chaque bouteille commence sous de vieux arbres, puis voyage de Beyrouth vers des cuisines dans 29 pays.",
+    filmLabel: "Voir le film Zuruny",
   },
   cinematic: {
     idle: { eyebrow: "", title: "", body: "" },

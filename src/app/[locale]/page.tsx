@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { CinematicStage } from "@/components/cinematic/CinematicStage";
-import { MobileOilHero } from "@/components/cinematic/MobileOilHero";
+import { SkotHero } from "@/components/SkotHero";
+import { HomeStage } from "@/components/cinematic/HomeStage";
 import { Ledger } from "@/components/Ledger";
 import { isLocale } from "@/lib/i18n";
 import { getLiveProducts, getNamedProducts } from "@/lib/products";
@@ -20,8 +20,7 @@ export default async function HomePage({
 
   return (
     <main id="main">
-      <CinematicStage locale={locale} />
-      <MobileOilHero locale={locale} />
+      <HomeStage locale={locale} hero={<SkotHero locale={locale} />} />
       <Ledger locale={locale} live={live} named={named} />
     </main>
   );
