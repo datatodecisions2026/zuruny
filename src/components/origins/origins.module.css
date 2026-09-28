@@ -76,13 +76,38 @@
   .empty p { margin-top: .5rem; }
   .photo { flex-basis: 6rem; height: 8rem; }
   .story p { font-size: .8rem; }
+  .section { margin-bottom: 3rem; }
+}
+@media (min-width: 768px) and (orientation: portrait) {
   .origins ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .origins li + li { border-left: 0; }
   .origins li:nth-child(even) { border-left: 1px solid var(--rule-strong); }
   .origins li:nth-child(n+3) { border-top: 1px solid var(--rule-strong); }
   .origins li:last-child { grid-column: 1 / -1; }
   .origins button { min-height: 76px; padding: 1rem; }
-  .section { margin-bottom: 3rem; }
+}
+/* Phones: map, place summary and name chips share one screen; the story scrolls below. */
+.overlay { display: none; }
+@media (max-width: 767px) {
+  .section { display: flex; flex-direction: column; }
+  .header { margin-bottom: 1.25rem; }
+  .exhibit { display: contents; }
+  .map { height: clamp(19rem, calc(100svh - 19rem), 30rem); border: 1px solid var(--rule-strong); }
+  .overlay { display: block; position: absolute; right: .75rem; bottom: 3rem; z-index: 30; max-width: 58%; padding: .6rem .8rem; text-align: right; background: #210c10d9; border: 1px solid var(--rule-strong); pointer-events: none; }
+  .overlay h3 { font: 400 1.5rem/1.1 var(--font-display); margin: .2rem 0; }
+  .overlay .productName { font-size: 1rem; }
+  .overlay .coordinates { margin-top: .3rem; font-size: .55rem; }
+  .overlayHint { font: 400 1.15rem/1.2 var(--font-display); color: var(--color-cream); }
+  .origins { order: 1; }
+  .origins ol { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .origins ol::-webkit-scrollbar { display: none; }
+  .origins li { flex: 0 0 auto; }
+  .origins button { min-height: 44px; padding: .5rem .9rem; gap: .45rem; }
+  .origins strong { font-size: 1rem; }
+  .origins small, .listDot { display: none; }
+  .panel { order: 2; border: 1px solid var(--rule-strong); border-top: 0; }
+  .panel[data-empty="true"], .panelSummary { display: none; }
+  .story { margin-top: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .panelContent, .marker[data-selected="true"] .markerPoint { animation: none; }

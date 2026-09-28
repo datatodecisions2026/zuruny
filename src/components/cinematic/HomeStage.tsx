@@ -5,17 +5,23 @@ import dynamic from "next/dynamic";
 import { endCtaMotion, clamp } from "@/data/homepageStory";
 import { getDict, type Locale } from "@/lib/i18n";
 import { CinematicEndCta } from "@/components/cinematic/CinematicOverlays";
+import { FILM_CLASS } from "@/components/SkotHeroMotion";
 
 // Real-time 3D pour (jar → drops → cup, falling olives), built from the
 // "Zuruny Final" Blender scene. Browser only.
 const OilScene = dynamic(() => import("./OilScene"), { ssr: false });
 
-// Share of the stage's scroll spent dissolving the hero into the pour; the
-// pour scrubs across the rest.
-const HERO_SPAN = 0.2;
 // Let the hero's films get the network first; the model streams in after,
 // long before anyone scrolls to it.
 const SCENE_DELAY_MS = 1500;
+// Share of the stage's scroll that turns the tree (1.5–5 s of tree_rotate,
+// scrubbed) before the hard cut to the jar; the pour takes the rest. 150svh
+// of a 450svh scroll.
+const BRIDGE_SPAN = 1 / 3;
+// The hero (idle loop, logo, cards) blends into the turning tree over the
+// first 40svh. Same tree, same backlit light, so the blend reads as the
+// lobby coming to life rather than one scene over another.
+const HERO_FADE = 40 / 450;
 
 function smoothstep(value: number): number {
   const t = clamp(value, 0, 1);
@@ -30,46 +36,57 @@ function copyMotion(progress: number) {
 }
 
 /**
- * The homepage's pinned stage, all screen sizes. The tree hero (`hero`)
- * holds the first screen like a game lobby; scrolling dissolves it into the
- * real-time 3D pour underneath, which GSAP/ScrollTrigger scrubs from there.
+ * The homepage's opening, all screen sizes, one pinned stage scrubbed by
+ * GSAP/ScrollTrigger. The tree hero (`hero`) holds the first screen like a
+ * game lobby; scrolling blends it into the bridge film underneath, so the
+ * tree starts turning and lights up with the scroll, then a hard cut to the
+ * real-time 3D pour. Film never blends over the 3D scene: that muddied both.
  */
 export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode }) {
   const sectionRef = useRef<HTMLElement>(null);
   const heroRef = useRef<HTMLDivElement>(null);
+  const pausedFilmsRef = useRef<HTMLVideoElement[]>([]);
+  const bridgeRef = useRef<HTMLVideoElement>(null);
+  const pendingSeekRef = useRef<number | null>(null);
   const copyRef = useRef<HTMLDivElement>(null);
   const endCtaRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const invalidateRef = useRef<(() => void) | null>(null);
-  const pausedFilmsRef = useRef<HTMLVideoElement[]>([]);
   const [sceneOn, setSceneOn] = useState(false);
   const t = getDict(locale);
   const copy = t.cinematic.oilDrop;
 
   const renderProgress = useCallback((stage: number) => {
-    const fade = smoothstep(stage / HERO_SPAN);
     const heroEl = heroRef.current;
     if (heroEl) {
+      const fade = smoothstep(stage / HERO_FADE);
       heroEl.style.opacity = String(1 - fade);
-      heroEl.style.transform = `scale(${1 + 0.08 * fade})`;
       const gone = fade >= 1;
       heroEl.style.visibility = gone ? "hidden" : "visible";
       heroEl.toggleAttribute("inert", gone);
-      // Don't decode films nobody can see; resume exactly those on return.
+      // Don't decode the loop once nobody can see it; resume it on return.
       if (gone && pausedFilmsRef.current.length === 0) {
-        heroEl.querySelectorAll("video").forEach((video) => {
-          if (!video.paused) {
-            video.pause();
-            pausedFilmsRef.current.push(video);
-          }
-        });
+        pausedFilmsRef.current = [...heroEl.querySelectorAll("video")].filter((video) => !video.paused);
+        pausedFilmsRef.current.forEach((video) => video.pause());
       } else if (!gone && pausedFilmsRef.current.length > 0) {
         pausedFilmsRef.current.forEach((video) => void video.play().catch(() => {}));
         pausedFilmsRef.current = [];
       }
     }
 
-    const progress = clamp((stage - HERO_SPAN) / (1 - HERO_SPAN), 0, 1);
+    const bridge = bridgeRef.current;
+    if (bridge) {
+      const turning = stage < BRIDGE_SPAN;
+      bridge.style.visibility = turning ? "visible" : "hidden";
+      if (turning && Number.isFinite(bridge.duration)) {
+        const time = clamp(stage / BRIDGE_SPAN, 0, 1) * (bridge.duration - 0.05);
+        // One seek at a time; the latest target waits for the current one.
+        if (bridge.seeking) pendingSeekRef.current = time;
+        else bridge.currentTime = time;
+      }
+    }
+
+    const progress = clamp((stage - BRIDGE_SPAN) / (1 - BRIDGE_SPAN), 0, 1);
     if (progress !== progressRef.current) {
       progressRef.current = progress;
       invalidateRef.current?.();
@@ -94,10 +111,30 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
     }
   }, []);
 
+  // After the hero's loop has the network: the bridge film and the model.
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const timeoutId = window.setTimeout(() => setSceneOn(true), SCENE_DELAY_MS);
-    return () => window.clearTimeout(timeoutId);
+    const bridge = bridgeRef.current;
+    const onSeeked = () => {
+      const next = pendingSeekRef.current;
+      pendingSeekRef.current = null;
+      if (bridge && next !== null) bridge.currentTime = next;
+    };
+    bridge?.addEventListener("seeked", onSeeked);
+    const timeoutId = window.setTimeout(() => {
+      if (bridge) {
+        // Every frame is a keyframe, so seeks land instantly both ways.
+        const cut = window.matchMedia("(min-width: 768px)").matches ? "" : "-mobile";
+        bridge.muted = true;
+        bridge.poster = `/skot/tree-bridge${cut}-poster.webp`;
+        bridge.src = `/skot/tree-bridge${cut}.mp4`;
+      }
+      setSceneOn(true);
+    }, SCENE_DELAY_MS);
+    return () => {
+      window.clearTimeout(timeoutId);
+      bridge?.removeEventListener("seeked", onSeeked);
+    };
   }, []);
 
   const noop = useCallback(() => {}, []);
@@ -140,12 +177,13 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
     <section
       ref={sectionRef}
       aria-label={locale === "fr" ? "Zuruny, de l'arbre à la goutte" : "Zuruny, from the tree to the drop"}
-      className="relative isolate block h-[500svh] overflow-clip bg-ground motion-reduce:h-[100svh]"
+      className="relative isolate block h-[550svh] overflow-clip bg-ground motion-reduce:h-[100svh]"
     >
       <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center gap-8 overflow-hidden px-[var(--gutter)] md:items-start">
         <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
           {sceneOn && (
             <OilScene
+              backdrop={copy.backdrop}
               progressRef={progressRef}
               invalidateRef={invalidateRef}
               onReady={noop}
@@ -179,7 +217,16 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
 
         <CinematicEndCta locale={locale} containerRef={endCtaRef} />
 
-        <div ref={heroRef} className="absolute inset-0 z-40 origin-center will-change-[opacity,transform]">
+        <video
+          ref={bridgeRef}
+          muted
+          playsInline
+          preload="auto"
+          aria-hidden="true"
+          className={`${FILM_CLASS} z-40`}
+        />
+
+        <div ref={heroRef} className="absolute inset-0 z-50">
           {hero}
         </div>
       </div>

@@ -9,7 +9,7 @@ function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));
 }
 
-function smoothstep(value: number): number {
+export function smoothstep(value: number): number {
   const t = clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
 }

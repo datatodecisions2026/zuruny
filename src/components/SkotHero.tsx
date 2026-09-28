@@ -29,7 +29,7 @@ export function SkotHero({ locale }: { locale: Locale }) {
       <SkotHeroMotion />
 
       {/* Phones */}
-      <div className="absolute inset-x-0 bottom-0 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-24 md:hidden">
+      <div className="absolute inset-x-0 bottom-0 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-16 md:hidden">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-black/70 via-black/35 to-transparent"
@@ -48,42 +48,10 @@ export function SkotHero({ locale }: { locale: Locale }) {
             <p className="mt-2 text-xs leading-snug opacity-75">{t.cardBody}</p>
           </div>
         </div>
-        <h2 className="mt-6 font-display text-4xl leading-none">{t.title}</h2>
-        <div className="mt-3 grid grid-cols-2 gap-4">
-          {t.columns.map((text) => (
-            <p key={text} className="text-[13px] leading-5">
-              {text}
-            </p>
-          ))}
-        </div>
       </div>
 
       {/* Desktop artboard */}
       <div className="absolute bottom-0 left-1/2 hidden h-[calc(var(--u)*810)] w-[calc(var(--u)*1440)] -translate-x-1/2 md:block">
-        <div className="absolute left-[calc(var(--u)*199)] top-[calc(var(--u)*650)]">
-          <h2 className="font-display text-[calc(var(--u)*40)] leading-[calc(var(--u)*42)]">
-            {t.title}
-          </h2>
-          <div className="mt-[calc(var(--u)*7)] flex gap-[calc(var(--u)*22.76)]">
-            {t.columns.map((text) => (
-              <p
-                key={text}
-                className="w-[calc(var(--u)*172)] text-[calc(var(--u)*14)] leading-[calc(var(--u)*20)]"
-              >
-                {text}
-              </p>
-            ))}
-          </div>
-        </div>
-
-        <p
-          aria-hidden="true"
-          className="absolute left-[calc(var(--u)*14)] top-[calc(var(--u)*722)] whitespace-nowrap font-display leading-none"
-        >
-          <span className="text-[calc(var(--u)*80)]">01</span>
-          <span className="text-[calc(var(--u)*32)] opacity-40">/04</span>
-        </p>
-
         <Link
           href={about}
           aria-label={t.filmLabel}

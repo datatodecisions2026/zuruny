@@ -94,7 +94,7 @@ export function ShopGrid({ products }: { products: Product[] }) {
           silently swapping underneath. */}
       <ul
         key={filter}
-        className="m-cascade mt-16 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+        className="m-cascade mt-10 grid grid-cols-2 gap-x-3 gap-y-10 sm:mt-16 sm:gap-x-6 sm:gap-y-14 lg:grid-cols-4 xl:grid-cols-5"
       >
         {shown.map((product, i) => (
           <li key={product.handle}

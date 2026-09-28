@@ -4,75 +4,45 @@ import { useEffect, useRef, useState } from "react";
 import type { AnimationItem } from "lottie-web";
 
 const INTRO_TIMEOUT_MS = 4000;
-// Length of the rotate → idle dissolve, in seconds.
-const BLEND_S = 1;
 // Phones fill the screen with the portrait cut. Desktop follows Figma, which
 // frames the film at ~120% of the artboard pinned to its bottom edge, nudged
 // 2% right of Figma's -9.88% so the film's bottom-right watermark falls
 // off-screen (the portrait cut has none).
-const FILM_CLASS =
+export const FILM_CLASS =
   "pointer-events-none absolute inset-0 size-full object-cover md:inset-auto md:-left-[7.88%] md:-top-[9.88%] md:size-[119.76%] md:max-w-none md:object-bottom";
 
 /**
- * The moving parts of SkotHero: the tree films (a one-off rotate that
- * dissolves into an endless idle loop, game-lobby style), and the Zuruny
+ * The moving parts of SkotHero: the idle tree loop (game-lobby style; the
+ * rotation is saved for HomeStage's scroll bridge), and the Zuruny
  * Lottie mark that plays small over a dark curtain, then grows into the
  * slot the template's "SKOTHYA" title occupied as the curtain lifts.
  */
 export function SkotHeroMotion() {
-  const rotateRef = useRef<HTMLVideoElement>(null);
   const idleRef = useRef<HTMLVideoElement>(null);
   const markRef = useRef<HTMLDivElement>(null);
   const [lottieReady, setLottieReady] = useState(false);
   const [done, setDone] = useState(false);
-  const [idleShowing, setIdleShowing] = useState(false);
 
-  // Load both films behind the curtain so they're buffered when it lifts.
+  // Load the loop behind the curtain so it's buffered when it lifts.
   useEffect(() => {
     const cut = window.matchMedia("(min-width: 768px)").matches ? "" : "-mobile";
-    const rotate = rotateRef.current;
     const idle = idleRef.current;
-    if (!rotate || !idle) return;
+    if (!idle) return;
     // React doesn't reflect the `muted` prop onto the element, and autoplay
     // policies reject play() on anything not muted.
-    rotate.muted = idle.muted = true;
-    rotate.poster = `/skot/tree-rotate${cut}-poster.webp`;
-    rotate.src = `/skot/tree-rotate${cut}.mp4`;
+    idle.muted = true;
+    idle.poster = `/skot/tree-idle${cut}-poster.webp`;
     idle.src = `/skot/tree-idle-loop${cut}.mp4`;
   }, []);
 
-  // Once the curtain lifts: play the rotate once, then dissolve it into the
-  // idle loop. The idle file has its own seam baked in (its last second
-  // crossfades into its first), so plain `loop` wraps with no visible jump.
+  // The loop starts as the curtain lifts. Its seam is baked into the file
+  // (the last second crossfades into the first), so plain `loop` wraps with
+  // no visible jump.
   useEffect(() => {
-    if (!done) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const rotate = rotateRef.current;
-    const idle = idleRef.current;
-    if (!rotate || !idle || !rotate.src) return;
-
-    let raf = 0;
-    const handOff = () => {
-      cancelAnimationFrame(raf);
-      void idle.play().catch(() => {});
-      setIdleShowing(true);
-    };
-    const watch = () => {
-      if (rotate.duration - rotate.currentTime <= BLEND_S) handOff();
-      else raf = requestAnimationFrame(watch);
-    };
-    rotate.addEventListener("ended", handOff, { once: true });
-    void rotate
-      .play()
-      .then(() => {
-        raf = requestAnimationFrame(watch);
-      })
-      .catch(handOff); // Autoplay declined: go straight to the lobby loop.
-
-    return () => {
-      cancelAnimationFrame(raf);
-      rotate.removeEventListener("ended", handOff);
-    };
+    if (!done || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    void idleRef.current?.play().catch(() => {
+      // Autoplay declined: the poster stays.
+    });
   }, [done]);
 
   useEffect(() => {
@@ -134,15 +104,7 @@ export function SkotHeroMotion() {
         playsInline
         preload="auto"
         aria-hidden="true"
-        className={`${FILM_CLASS} -z-20`}
-      />
-      <video
-        ref={rotateRef}
-        playsInline
-        preload="auto"
-        aria-hidden="true"
-        className={`${FILM_CLASS} -z-10 transition-opacity duration-1000 ease-in-out`}
-        style={{ opacity: idleShowing ? 0 : 1 }}
+        className={`${FILM_CLASS} -z-10`}
       />
 
       <div
