@@ -42,7 +42,7 @@ export function ProductCard({
                 src={front.src}
                 alt={front.alt}
                 fill
-                sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 46vw, 100vw"
+                sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 46vw, 50vw"
                 className="object-cover transition-[transform,opacity] duration-[900ms] ease-[var(--ease-out-soft)] group-hover:scale-110 motion-safe:group-hover:opacity-0 motion-safe:group-focus-within:opacity-0"
               />
               {back && (
@@ -51,7 +51,7 @@ export function ProductCard({
                   alt=""
                   aria-hidden
                   fill
-                  sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 46vw, 100vw"
+                  sizes="(min-width: 1280px) 20vw, (min-width: 1024px) 25vw, (min-width: 640px) 46vw, 50vw"
                   className="scale-110 object-cover opacity-0 transition-[transform,opacity] duration-[900ms] ease-[var(--ease-out-soft)] motion-safe:group-hover:scale-100 motion-safe:group-hover:opacity-100 motion-safe:group-focus-within:scale-100 motion-safe:group-focus-within:opacity-100"
                 />
               )}
@@ -77,7 +77,7 @@ export function ProductCard({
           )}
 
           {!buyable && (
-            <span className="u-mono absolute left-3 top-3 bg-ground/85 px-2.5 py-1.5 text-ochre">
+            <span className="u-mono absolute left-2 top-2 bg-ground/85 px-2 py-1 text-ochre sm:left-3 sm:top-3 sm:px-2.5 sm:py-1.5">
               {reason === "no-price"
                 ? t.product.notYetReleased
                 : t.product.soldOut}
@@ -85,8 +85,8 @@ export function ProductCard({
           )}
         </div>
 
-        <div className="mt-4 flex items-baseline justify-between gap-3">
-          <h3 className="u-display text-[length:var(--step-1)] text-cream transition-colors duration-300 group-hover:text-ochre">
+        <div className="mt-3 flex flex-col gap-1 sm:mt-4 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+          <h3 className="u-display text-[length:var(--step-0)] text-cream transition-colors duration-300 group-hover:text-ochre sm:text-[length:var(--step-1)]">
             {product.name}
           </h3>
           <p className="u-mono shrink-0 text-cream">
@@ -98,7 +98,7 @@ export function ProductCard({
           </p>
         </div>
 
-        <p className="u-mono mt-2 text-[var(--text-faint)]">
+        <p className="u-mono mt-1 text-[var(--text-faint)] sm:mt-2">
           {t.kinds[product.kind]}
         </p>
       </Link>

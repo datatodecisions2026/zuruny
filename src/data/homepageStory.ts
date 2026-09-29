@@ -1,15 +1,7 @@
 /**
- * Cinematic homepage story configuration.
- *
- * Each scene owns its desktop/mobile sources and scroll range.
- * The CinematicStage iterates this list and drives playback/opacity from it.
+ * Scene list and scroll helpers from the retired video stage. HomeStage still
+ * uses `endCtaMotion` and `clamp`; the rest stays for its tests.
  */
-
-export interface FrameSequence {
-  /** Frames live at `${base}/f001.webp` … `f${count}.webp`. */
-  base: string;
-  count: number;
-}
 
 export interface StoryScene {
   id: "idle" | "intro" | "canopy" | "oilDrop";
@@ -19,13 +11,6 @@ export interface StoryScene {
   scrollEnd: number;
   side?: "left" | "right";
   desktopSrc: string;
-  /** Mobile video source. Only the idle loop still plays as video on mobile. */
-  mobileSrc?: string;
-  /**
-   * Mobile-only WebP frame sequence, scrubbed by swapping the image instead
-   * of seeking a video. Sidesteps keyframe/decoder seek cost entirely.
-   */
-  mobileFrames?: FrameSequence;
   /** Muted looping idle video vs scroll-driven scene. */
   loop: boolean;
 }
@@ -37,7 +22,6 @@ export const SCENES: StoryScene[] = [
     scrollEnd: 0.06,
     loop: true,
     desktopSrc: "/hero_scenes/tree_idle_seamless.mp4",
-    mobileSrc: "/hero_scenes/tree_idle_mobile_seamless.mp4",
   },
   {
     id: "intro",
@@ -46,7 +30,6 @@ export const SCENES: StoryScene[] = [
     side: "left",
     loop: false,
     desktopSrc: "/hero_scenes/tree_intro_new.mp4",
-    mobileFrames: { base: "/hero_frames/intro", count: 36 },
   },
   {
     id: "canopy",
@@ -55,7 +38,6 @@ export const SCENES: StoryScene[] = [
     side: "right",
     loop: false,
     desktopSrc: "/hero_scenes/tree_canopy_new.mp4",
-    mobileFrames: { base: "/hero_frames/canopy", count: 24 },
   },
   {
     id: "oilDrop",
@@ -64,7 +46,6 @@ export const SCENES: StoryScene[] = [
     side: "left",
     loop: false,
     desktopSrc: "/hero_scenes/oil_drop_new.mp4",
-    mobileFrames: { base: "/hero_frames/oilDrop", count: 24 },
   },
 ];
 

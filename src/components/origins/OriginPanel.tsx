@@ -6,18 +6,27 @@ import { localePath, type Locale } from "@/lib/i18n";
 import { originCopy } from "./copy";
 import styles from "./origins.module.css";
 
+/** Region, place, product and coordinates. Lives in the panel on wide screens and over the map on phones. */
+export function OriginSummary({ origin, product, locale, className }: {
+  origin: LebanonOrigin; product?: Product; locale: Locale; className?: string;
+}) {
+  return <div className={className}>
+    <p className={styles.label}>{origin.region}</p>
+    <h3>{origin.name}</h3>
+    <p className={styles.productName}>{product?.name ?? origin.product}</p>
+    <p className={styles.coordinates} aria-label={originCopy[locale].coordinates}>{origin.lat.toFixed(4)}° N &nbsp; {origin.lng.toFixed(4)}° E</p>
+  </div>;
+}
+
 export function OriginPanel({ origin, product, locale, onView }: {
   origin?: LebanonOrigin; product?: Product; locale: Locale; onView: (handle: string) => void;
 }) {
   const copy = originCopy[locale];
   const photo = product?.images[0];
-  return <aside className={styles.panel} aria-label={copy.list}>
+  return <aside className={styles.panel} aria-label={copy.list} data-empty={!origin}>
     <div aria-live="polite" aria-atomic="true">
       {origin ? <div key={origin.id} className={styles.panelContent}>
-        <p className={styles.label}>{origin.region}</p>
-        <h3>{origin.name}</h3>
-        <p className={styles.productName}>{product?.name ?? origin.product}</p>
-        <p className={styles.coordinates} aria-label={copy.coordinates}>{origin.lat.toFixed(4)}° N &nbsp; {origin.lng.toFixed(4)}° E</p>
+        <OriginSummary origin={origin} product={product} locale={locale} className={styles.panelSummary} />
         <div className={styles.story}>
           {(photo || origin.image) && <div className={styles.photo}><Image
             src={photo?.src ?? origin.image!} alt={photo?.alt ?? origin.product}

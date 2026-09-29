@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { JournalPageData, NameChapter } from "@/data/namesJournal";
+import type { JournalPageData } from "@/data/namesJournal";
+import type { NameChapter } from "@/lib/chapters";
 import { journalCopy } from "@/data/namesJournalCopy";
 import type { ProductImage } from "@/lib/catalog";
 import { descriptionFor, specFor } from "@/lib/catalog.fr";
@@ -12,14 +13,14 @@ export function Emblem() {
 }
 
 export function Ornament({ variant = "divider" }: { variant?: "divider" | "olive 1" | "olive 2" }) {
-  return <Image className={variant === "divider" ? styles.divider : styles.botanical} src={`/names/journal/${variant}.webp`} alt="" width={variant === "divider" ? 734 : 730} height={variant === "divider" ? 273 : 450} sizes="(min-width: 1024px) 240px, 180px" />;
+  return <Image className={variant === "divider" ? styles.divider : styles.botanical} src={`/names/journal/${variant}.webp`} alt="" width={variant === "divider" ? 734 : 730} height={variant === "divider" ? 273 : 450} sizes="(min-width: 768px) 240px, 180px" />;
 }
 
 function Photo({ image, caption, small = false }: { image: ProductImage; caption: string; small?: boolean }) {
   return (
     <figure className={`${styles.figure} ${small ? styles.smallFigure : ""}`}>
       <div className={styles.photo}>
-        <Image src={image.src} alt={image.alt} width={image.w} height={image.h} sizes="(min-width: 1024px) 36vw, 88vw" />
+        <Image src={image.src} alt={image.alt} width={image.w} height={image.h} sizes="(min-width: 768px) 36vw, 88vw" />
       </div>
       <figcaption>{caption}</figcaption>
     </figure>

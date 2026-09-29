@@ -92,6 +92,13 @@ body {
   border-radius: 2px;
 }
 
+/* Browser autofill paints inputs pale blue; keep them on the ground colour. */
+input:-webkit-autofill {
+  -webkit-text-fill-color: var(--color-cream);
+  box-shadow: 0 0 0 100vmax var(--color-ground) inset;
+  caret-color: var(--color-cream);
+}
+
 /* --------------------------------------------------------------------------
    TYPE
    -------------------------------------------------------------------------- */

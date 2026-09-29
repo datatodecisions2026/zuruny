@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { LebanonOrigins } from "@/components/origins/LebanonOrigins";
-import { origins } from "@/data/lebanon-origins";
+import type { LebanonOrigin } from "@/data/lebanon-origins";
 import { ProductCard } from "@/components/ProductCard";
 import { usePreferences } from "@/lib/preferences";
 import { type Product, type ProductKind } from "@/lib/catalog";
@@ -19,7 +19,7 @@ function matches(product: Product, filter: Filter): boolean {
   return product.kind === filter;
 }
 
-export function ShopGrid({ products }: { products: Product[] }) {
+export function ShopGrid({ products, origins }: { products: Product[]; origins: LebanonOrigin[] }) {
   const { locale, region, t } = usePreferences();
   const [filter, setFilter] = useState<Filter>("all");
   const [target, setTarget] = useState<{ handle: string } | null>(null);
@@ -31,7 +31,7 @@ export function ShopGrid({ products }: { products: Product[] }) {
     if (!card) return;
     card.focus({ preventScroll: true });
     card.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" });
-  }, [target]);
+  }, [target, origins]);
 
   const filters: { id: Filter; label: string }[] = [
     { id: "all", label: t.shop.everything },
@@ -56,7 +56,7 @@ export function ShopGrid({ products }: { products: Product[] }) {
 
   return (
     <>
-      <LebanonOrigins products={products} onView={(handle) => {
+      <LebanonOrigins products={products} origins={origins} onView={(handle) => {
         setFilter("all");
         setTarget({ handle });
       }} />
@@ -94,7 +94,7 @@ export function ShopGrid({ products }: { products: Product[] }) {
           silently swapping underneath. */}
       <ul
         key={filter}
-        className="m-cascade mt-16 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5"
+        className="m-cascade mt-10 grid grid-cols-2 gap-x-3 gap-y-10 sm:mt-16 sm:gap-x-6 sm:gap-y-14 lg:grid-cols-4 xl:grid-cols-5"
       >
         {shown.map((product, i) => (
           <li key={product.handle}

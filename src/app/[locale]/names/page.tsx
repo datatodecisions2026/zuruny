@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { NamesJournal } from "@/components/names/NamesJournal";
-import { buildChapters } from "@/data/namesJournal";
 import { journalCopy } from "@/data/namesJournalCopy";
-import { products as archive } from "@/lib/catalog";
+import { getChapters } from "@/lib/chapters";
 import { getDict, isLocale } from "@/lib/i18n";
-import { getLiveProducts } from "@/lib/products";
 
 export async function generateMetadata({
   params,
@@ -26,7 +24,7 @@ export default async function NamesPage({
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
 
-  const chapters = buildChapters(await getLiveProducts(), archive);
+  const chapters = await getChapters();
 
   return (
     <main id="main">

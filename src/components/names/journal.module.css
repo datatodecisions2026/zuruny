@@ -112,7 +112,7 @@
 .experience :focus-visible { outline-color: var(--burgundy); }
 .toolbar :focus-visible, .bookControls :focus-visible { outline-color: #e5cf9d; }
 
-@media (min-width: 1024px) and (max-height: 800px) {
+@media (min-width: 768px) and (max-height: 800px) {
   .experience[data-enhanced] .book { height: calc(100svh - 225px); }
   .experience[data-enhanced] .pageContent { gap: 0.75rem; padding: 1rem 0; }
   .experience[data-enhanced] .memory { font-size: 1.125rem; }
@@ -120,7 +120,17 @@
   .experience[data-enhanced] .description { font-size: 0.95rem; }
   .experience[data-enhanced] .fieldNotes { gap: 0.5rem 1rem; }
 }
-@media (max-width: 1023px) {
+@media (min-width: 768px) and (max-height: 650px) {
+  .experience[data-enhanced] .runningHead, .experience[data-enhanced] .folio { display: none; }
+  .experience[data-enhanced] .pageContent h2 { font-size: clamp(2.25rem, 4vw, 3.5rem); }
+  .experience[data-enhanced] .pageContent h3:not(.label) { font-size: clamp(1.4rem, 2vw, 2rem); }
+  .experience[data-enhanced] .memory { font-size: 1rem; }
+  .experience[data-enhanced] .fieldNotes { gap: 0.4rem 0.75rem; }
+  .experience[data-enhanced] .smallFigure .photo img { max-height: 5rem; }
+  .experience[data-enhanced] .photo img { max-height: 12rem; }
+  .experience[data-enhanced] .scrollHint { display: none; }
+}
+@media (max-width: 767px) {
   .intro { padding-top: 8rem; }
   .introRow { display: block; padding: 1.5rem 0 2rem; }
   .intro h1 { font-size: clamp(4.5rem, 13vw, 7rem); }
@@ -161,6 +171,11 @@
   .pager > span { min-width: 3rem; }
   .continuation { padding: 4rem var(--gutter); }
 }
+@media (max-width: 767px) and (max-height: 650px) {
+  .experience[data-enhanced] .runningHead, .experience[data-enhanced] .folio { display: none; }
+  .experience[data-enhanced] .pageContent h2 { font-size: clamp(2rem, 8vw, 3rem); }
+  .experience[data-enhanced] .memory { font-size: 1rem; }
+}
 @media (max-width: 374px) {
   .toolbar, .bookControls, .book { width: calc(100% - 1.5rem); }
   .index a { font-size: 0.9rem; }
@@ -169,7 +184,7 @@
   .memory { font-size: 1.0625rem; }
   .pageContent h3:not(.label) { font-size: 1.75rem; }
 }
-@media (prefers-reduced-motion: reduce), (max-height: 649px) {
+@media (prefers-reduced-motion: reduce) {
   .readToggle, .scrollHint { display: none; }
   .stage { padding-top: 1rem; }
 }

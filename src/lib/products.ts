@@ -1,12 +1,13 @@
 import "server-only";
 import { cache } from "react";
-import { getSupabaseServer, supabaseConfigured } from "@/lib/supabase/server";
+import { dbConfigured, query } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { products as seedProducts, type Product, type ProductKind } from "@/lib/catalog";
 
 /**
- * The catalogue, read from Supabase.
+ * The catalogue, read from Postgres.
  *
- * `catalog.ts` stays as the seed and as the fallback: if Supabase is not
+ * `catalog.ts` stays as the seed and as the fallback: if the database is not
  * configured (a fresh clone, a preview without env vars) the site still
  * renders the shop rather than showing an empty store. The database is the
  * source of truth whenever it is reachable.
@@ -15,7 +16,10 @@ import { products as seedProducts, type Product, type ProductKind } from "@/lib/
  * shop grid and a product page hits the database once, not three times.
  */
 
-type Row = {
+export type Row = {
+  // Selected so other queries (chapters.ts) can join on it; toProduct() below
+  // never reads it, since Product itself has no id — the handle is its key.
+  id: number;
   handle: string;
   name: string;
   kind: ProductKind;
@@ -49,13 +53,20 @@ type Row = {
   }[];
 };
 
-const SELECT =
-  "handle, name, kind, status, named_after_from, description, description_fr, memory, pull_quote, position, " +
-  "zuruny_variants(label, price_cents, stock, available, position), " +
-  "zuruny_product_images(src, width, height, alt, position), " +
-  "zuruny_product_spec(label, value, label_fr, value_fr, position)";
+/* One round trip: each child table is folded into a JSON array on its parent,
+   under the same column names the Row type above expects. */
+const agg = (table: string, cols: string, alias: string) =>
+  `coalesce((select json_agg(x order by x.position) from (select ${cols} from ${table} c where c.product_id = p.id) x), '[]'::json) as ${alias}`;
 
-function toProduct(row: Row): Product {
+export const SELECT = `
+  select p.id, p.handle, p.name, p.kind, p.status, p.named_after_from, p.description,
+         p.description_fr, p.memory, p.pull_quote, p.position,
+         ${agg("zuruny_variants", "c.label, c.price_cents, c.stock, c.available, c.position", "zuruny_variants")},
+         ${agg("zuruny_product_images", "c.src, c.width, c.height, c.alt, c.position", "zuruny_product_images")},
+         ${agg("zuruny_product_spec", "c.label, c.value, c.label_fr, c.value_fr, c.position", "zuruny_product_spec")}
+    from zuruny_products p`;
+
+export function toProduct(row: Row): Product {
   const by = <T extends { position: number }>(a: T, b: T) => a.position - b.position;
 
   return {
@@ -90,32 +101,28 @@ function toProduct(row: Row): Product {
 }
 
 /**
- * Everything the caller is allowed to see. RLS decides that: an anonymous
- * visitor gets only `status = 'active'`, an admin gets drafts too.
+ * Everything the caller is allowed to see: an anonymous visitor gets only
+ * `status = 'active'`, an admin gets drafts too.
  */
 export const getProducts = cache(async (): Promise<Product[]> => {
-  if (!supabaseConfigured) return seedProducts;
+  if (!dbConfigured) return seedProducts;
 
-  const supabase = await getSupabaseServer();
-  if (!supabase) return seedProducts;
-
-  const { data, error } = await supabase
-    .from("zuruny_products")
-    .select(SELECT)
-    .order("position");
-
-  if (error || !data) {
-    /* Falling back keeps the shop up, but it must never be silent. An RLS
-       mistake once made every product unreadable and this fallback served
-       the seed file instead — so the site looked fine while the admin's
-       edits went nowhere. Anything that lands here needs investigating. */
+  try {
+    const isAdmin = (await getSessionUser())?.isAdmin ?? false;
+    const rows = await query<Row>(
+      `${SELECT} ${isAdmin ? "" : "where p.status = 'active'"} order by p.position`,
+    );
+    return rows.map(toProduct);
+  } catch (error) {
+    /* Falling back keeps the shop up, but it must never be silent. Anything
+       that lands here needs investigating — otherwise the site looks fine
+       while the admin's edits go nowhere. */
     console.error(
       "[zuruny] Falling back to the seed catalogue — the database read failed:",
-      error?.message ?? "no rows returned",
+      error instanceof Error ? error.message : error,
     );
     return seedProducts;
   }
-  return (data as unknown as Row[]).map(toProduct);
 });
 
 export const getLiveProducts = cache(async (): Promise<Product[]> => {

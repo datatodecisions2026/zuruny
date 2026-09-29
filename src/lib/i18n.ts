@@ -165,6 +165,11 @@ const en = {
     title: "From our trees to your table",
     body: "Every bottle begins in the grove — named after people, pressed in named villages, carried from Beirut to kitchens around the world. This is the work before the product.",
   },
+  skot: {
+    cardTitle: "The Grove",
+    cardBody: "Every bottle begins under old trees, then travels from Beirut to kitchens in 29 countries.",
+    filmLabel: "Watch the Zuruny film",
+  },
   cinematic: {
     idle: { eyebrow: "", title: "", body: "" },
     intro: {
@@ -181,6 +186,7 @@ const en = {
       eyebrow: "The essence",
       title: "One drop, the whole story",
       body: "From the fruit to the glass — each droplet carries the land, the climate, and the craft.",
+      backdrop: "Cold-pressed\nin Lebanon",
     },
     loading: {
       eyebrow: "Zuruny · Beirut",
@@ -253,6 +259,14 @@ const en = {
       "An account is how you see an order after you have placed it — what you ordered, what it came to, and where it has got to.",
     notConfigured:
       "Accounts are not switched on yet. Orders still reach us by email.",
+    eyebrow: "Zuruny · Private account",
+    signInLead: "Welcome back.",
+    signUpLead: "Take a seat at the table.",
+    newHere: "New to Zuruny?",
+    haveAccount: "Already have an account?",
+    showPassword: "Show",
+    hidePassword: "Hide",
+    caption: "Malvina · Deir Mimas, South Lebanon",
   },
   order: {
     thanksTitle: "Thank you.",
@@ -445,6 +459,11 @@ const fr: typeof en = {
     title: "De nos oliviers à votre table",
     body: "Chaque bouteille commence dans le verger — prénommée d'après des personnes, pressée dans des villages nommés, expédiée de Beyrouth vers des cuisines du monde entier. Voilà le travail avant le produit.",
   },
+  skot: {
+    cardTitle: "Le Verger",
+    cardBody: "Chaque bouteille commence sous de vieux arbres, puis voyage de Beyrouth vers des cuisines dans 29 pays.",
+    filmLabel: "Voir le film Zuruny",
+  },
   cinematic: {
     idle: { eyebrow: "", title: "", body: "" },
     intro: {
@@ -461,6 +480,7 @@ const fr: typeof en = {
       eyebrow: "L'essence",
       title: "Une goutte, toute l'histoire",
       body: "Du fruit au verre — chaque goutte porte la terre, le climat et le savoir-faire.",
+      backdrop: "Pressé à froid\nau Liban",
     },
     loading: {
       eyebrow: "Zuruny · Beyrouth",
@@ -533,6 +553,14 @@ const fr: typeof en = {
       "Un compte vous permet de suivre une commande après l'avoir passée : ce que vous avez commandé, le montant, et où elle en est.",
     notConfigured:
       "Les comptes ne sont pas encore activés. Les commandes nous parviennent toujours par e-mail.",
+    eyebrow: "Zuruny · Compte privé",
+    signInLead: "Bon retour parmi nous.",
+    signUpLead: "Prenez place à notre table.",
+    newHere: "Nouveau chez Zuruny ?",
+    haveAccount: "Déjà un compte ?",
+    showPassword: "Afficher",
+    hidePassword: "Masquer",
+    caption: "Malvina · Deir Mimas, Liban-Sud",
   },
   order: {
     thanksTitle: "Merci.",

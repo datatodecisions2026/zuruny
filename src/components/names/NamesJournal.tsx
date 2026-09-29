@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { journalPages, type NameChapter } from "@/data/namesJournal";
+import { journalPages } from "@/data/namesJournal";
+import type { NameChapter } from "@/lib/chapters";
 import { journalCopy } from "@/data/namesJournalCopy";
 import { getDict, localePath, type Locale } from "@/lib/i18n";
 import { JournalExperience } from "./JournalExperience";

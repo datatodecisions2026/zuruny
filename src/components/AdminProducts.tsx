@@ -19,6 +19,13 @@ export type AdminProduct = {
   status: string;
   description: string;
   descriptionFr: string;
+  /* The Names journal fields. namedAfterFrom is the person's own home village
+     — different from spec's "Village", which is where the oil is pressed.
+     memory is the founder's own writing, reproduced verbatim: no auto-format,
+     no length limit. pullQuote is the short line pulled out of it. */
+  namedAfterFrom: string;
+  memory: string;
+  pullQuote: string;
   variantId: number | null;
   priceCents: number | null;
   stock: number;
@@ -126,6 +133,25 @@ function AddForm() {
       <Field name="stock" label="Stock" type="number" placeholder="0" />
       <Field name="description" label="Description" textarea span />
       <Field name="description_fr" label="Description (French)" textarea span />
+      <Field
+        name="named_after_from"
+        label="Named after — their home village"
+        placeholder="Leave blank unless this is a named person"
+        span
+      />
+      <Field
+        name="pull_quote"
+        label="Pull quote"
+        placeholder="The one line pulled out of the story below"
+        span
+      />
+      <Field
+        name="memory"
+        label="Their story (the founder's own words — copied exactly, never rewritten)"
+        textarea
+        rows={8}
+        span
+      />
       <Status state={state} />
       <div className="sm:col-span-2">
         <button
@@ -198,6 +224,28 @@ function EditForm({
           textarea
           span
           defaultValue={product.descriptionFr}
+        />
+        <Field
+          name="named_after_from"
+          label="Named after — their home village"
+          placeholder="Leave blank unless this is a named person"
+          span
+          defaultValue={product.namedAfterFrom}
+        />
+        <Field
+          name="pull_quote"
+          label="Pull quote"
+          placeholder="The one line pulled out of the story below"
+          span
+          defaultValue={product.pullQuote}
+        />
+        <Field
+          name="memory"
+          label="Their story (the founder's own words — copied exactly, never rewritten)"
+          textarea
+          rows={8}
+          span
+          defaultValue={product.memory}
         />
 
         <Status state={saveState} />
@@ -272,6 +320,7 @@ function Field({
   placeholder,
   required,
   textarea,
+  rows = 3,
   span,
 }: {
   name: string;
@@ -281,6 +330,7 @@ function Field({
   placeholder?: string;
   required?: boolean;
   textarea?: boolean;
+  rows?: number;
   span?: boolean;
 }) {
   const cls =
@@ -294,7 +344,7 @@ function Field({
         <textarea
           id={name}
           name={name}
-          rows={3}
+          rows={rows}
           defaultValue={defaultValue}
           placeholder={placeholder}
           className={cls}

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { verifyWebhookSignature, verifyTransaction } from "@/lib/paystack";
-import { getSupabaseAdmin } from "@/lib/supabase/server";
+import { dbConfigured, query } from "@/lib/db";
 
 /**
  * Paystack webhook.
@@ -38,17 +38,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
-  const admin = getSupabaseAdmin();
-  if (!admin) {
-    console.error("[zuruny] Webhook received but Supabase admin is unavailable");
+  if (!dbConfigured) {
+    console.error("[zuruny] Webhook received but the database is not configured");
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
-  const { data: order } = await admin
-    .from("zuruny_orders")
-    .select("id, status, subtotal_cents")
-    .eq("reference", reference)
-    .maybeSingle();
+  const [order] = await query<{ id: number; status: string; subtotal_cents: number }>(
+    "select id, status, subtotal_cents from zuruny_orders where reference = $1",
+    [reference],
+  );
 
   if (!order) {
     console.error("[zuruny] Webhook for an unknown order:", reference);
@@ -75,10 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true }, { status: 200 });
   }
 
-  await admin
-    .from("zuruny_orders")
-    .update({ status: "paid", paid_at: new Date().toISOString() })
-    .eq("id", order.id);
+  await query("update zuruny_orders set status = 'paid', paid_at = now() where id = $1", [order.id]);
 
   return NextResponse.json({ received: true }, { status: 200 });
 }
