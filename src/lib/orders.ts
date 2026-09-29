@@ -60,8 +60,17 @@ function newReference(): string {
  *   - Availability, stock and "has a price at all" are re-checked, because the
  *     basket in someone's browser may be hours old.
  *
+<<<<<<< HEAD
+ * The order is written with the service role precisely so that `authenticated`
+ * has no INSERT policy on zuruny_orders — a client cannot write its own totals.
+ *
+ * Inserting the lines reserves stock in the database. Deleting the order
+ * before it is paid gives that stock back; marking it failed does the same.
+ * A second checkout cannot take units the first one is already holding.
+=======
  * The order and its lines are written in one transaction, so a total is never
  * left behind without its lines.
+>>>>>>> 5c6e07028d559e2a882b3c09e4a42b47de593077
  */
 export async function placeOrder(input: {
   lines: BasketLine[];
