@@ -20,6 +20,13 @@ import { REGION_HEADER, detectRegion } from "@/lib/region";
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // The admin panel lives outside app/[locale]/ entirely — its own layout,
+  // no storefront chrome, no locale — so it must never be rewritten onto
+  // /en/admin, which no longer exists.
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
+    return NextResponse.next();
+  }
+
   const hasLocalePrefix = LOCALES.some(
     (l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`),
   );

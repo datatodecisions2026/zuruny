@@ -22,13 +22,13 @@ export function AdminOrigins({ origins, products }: { origins: AdminOrigin[]; pr
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <p className="u-mono text-[var(--text-faint)]">
+        <p className="u-mono text-muted-foreground">
           {origins.length} {origins.length === 1 ? "pin" : "pins"} on the map
         </p>
         <button
           type="button"
           onClick={() => setAdding((v) => !v)}
-          className="u-mono border border-[var(--rule-strong)] px-5 py-3 text-cream transition-colors duration-300 hover:border-ochre hover:text-ochre"
+          className="u-mono border border-input px-5 py-3 text-foreground transition-colors duration-300 hover:border-accent hover:text-accent"
         >
           {adding ? "Cancel" : "Add a pin"}
         </button>
@@ -36,7 +36,7 @@ export function AdminOrigins({ origins, products }: { origins: AdminOrigin[]; pr
 
       {adding && <OriginForm products={products} onDone={() => setAdding(false)} />}
 
-      <ul className="divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
+      <ul className="divide-y divide-border border-y border-border">
         {origins.map((origin) => (
           <li key={origin.id}>
             <div className="flex flex-wrap items-center gap-4 py-4">
@@ -46,15 +46,15 @@ export function AdminOrigins({ origins, products }: { origins: AdminOrigin[]; pr
                 aria-expanded={open === origin.id}
                 className="flex-1 text-left"
               >
-                <span className="u-display text-[length:var(--step-1)] text-cream">{origin.name}</span>
-                <span className="u-mono ml-3 text-[var(--text-faint)]">{origin.productLabel}</span>
+                <span className="u-display text-[length:var(--step-1)] text-foreground">{origin.name}</span>
+                <span className="u-mono ml-3 text-muted-foreground">{origin.productLabel}</span>
               </button>
-              <span className="u-mono w-32 text-right text-[var(--text-faint)]">
+              <span className="u-mono w-32 text-right text-muted-foreground">
                 x {origin.mapX.toFixed(3)} · y {origin.mapY.toFixed(3)}
               </span>
             </div>
             {open === origin.id && (
-              <div className="mb-6 border border-[var(--rule)] p-6">
+              <div className="mb-6 border border-border p-6">
                 <OriginForm origin={origin} products={products} onDone={() => setOpen(null)} />
                 <ImageForm origin={origin} />
                 <DeleteForm origin={origin} onDone={() => setOpen(null)} />
@@ -88,7 +88,7 @@ function OriginForm({
   return (
     <form
       action={action}
-      className={origin ? "grid gap-5 sm:grid-cols-2" : "mb-8 grid gap-5 border border-[var(--rule-strong)] p-6 sm:grid-cols-2"}
+      className={origin ? "grid gap-5 sm:grid-cols-2" : "mb-8 grid gap-5 border border-input p-6 sm:grid-cols-2"}
     >
       {origin && <input type="hidden" name="id" value={origin.id} />}
       <Field name="name" label="Place name" defaultValue={origin?.name} required />
@@ -97,21 +97,21 @@ function OriginForm({
       )}
       <Field name="region" label="Region" defaultValue={origin?.region} />
       <div>
-        <label htmlFor={`${origin?.id ?? "new"}-product`} className="u-mono mb-2 block text-[var(--text-muted)]">
+        <label htmlFor={`${origin?.id ?? "new"}-product`} className="u-mono mb-2 block text-muted-foreground">
           Product
         </label>
         <select
           id={`${origin?.id ?? "new"}-product`}
           name="product_id"
           defaultValue={origin?.productId ?? ""}
-          className="w-full border border-[var(--rule-strong)] bg-ground-2 px-4 py-3 text-cream outline-none focus:border-ochre"
+          className="w-full border border-input bg-muted px-4 py-3 text-foreground outline-none focus:border-accent"
         >
-          <option value="" className="bg-ground">No product</option>
+          <option value="" className="bg-card">No product</option>
           {products.map((p) => (
-            <option key={p.id} value={p.id} className="bg-ground">{p.name}</option>
+            <option key={p.id} value={p.id} className="bg-card">{p.name}</option>
           ))}
         </select>
-        <p className="u-mono mt-2 text-[var(--text-faint)]">
+        <p className="u-mono mt-2 text-muted-foreground">
           May point at a draft product — the pin still shows, only its &ldquo;view&rdquo; link is hidden.
         </p>
       </div>
@@ -141,7 +141,7 @@ function OriginForm({
       <Field name="note" label="Note (fallback text if there's no product)" defaultValue={origin?.note ?? undefined} textarea span />
 
       {(state.error || state.message) && (
-        <p role={state.error ? "alert" : "status"} className={`u-mono sm:col-span-2 ${state.error ? "text-ochre" : "text-[var(--text-muted)]"}`}>
+        <p role={state.error ? "alert" : "status"} className={`u-mono sm:col-span-2 ${state.error ? "text-accent" : "text-muted-foreground"}`}>
           {state.error ?? state.message}
         </p>
       )}
@@ -150,12 +150,12 @@ function OriginForm({
         <button
           type="submit"
           disabled={pending}
-          className="u-mono bg-cream px-7 py-4 text-ground transition-colors duration-300 hover:bg-ochre disabled:opacity-50"
+          className="u-mono bg-primary px-7 py-4 text-primary-foreground transition-colors duration-300 hover:opacity-90 disabled:opacity-50"
         >
           {pending ? "Saving…" : origin ? "Save" : "Add pin"}
         </button>
         {origin && (
-          <button type="button" onClick={onDone} className="u-mono px-4 py-4 text-[var(--text-muted)] transition-colors hover:text-cream">
+          <button type="button" onClick={onDone} className="u-mono px-4 py-4 text-muted-foreground transition-colors hover:text-foreground">
             Close
           </button>
         )}
@@ -167,14 +167,14 @@ function OriginForm({
 function ImageForm({ origin }: { origin: AdminOrigin }) {
   const [state, action, pending] = useActionState(uploadOriginImage, EMPTY);
   return (
-    <form action={action} className="mt-8 border-t border-[var(--rule)] pt-6">
+    <form action={action} className="mt-8 border-t border-border pt-6">
       <input type="hidden" name="id" value={origin.id} />
-      <p className="u-mono mb-3 text-[var(--text-faint)]">
+      <p className="u-mono mb-3 text-muted-foreground">
         Fallback illustration, used when the linked product has no photo of its own.
       </p>
       <div className="flex flex-wrap items-end gap-4">
         {origin.image && (
-          <div className="relative aspect-[3/4] w-20 overflow-hidden border border-[var(--rule-strong)] bg-ground-2">
+          <div className="relative aspect-[3/4] w-20 overflow-hidden border border-input bg-muted">
             <Image src={origin.image} alt="" fill sizes="80px" className="object-cover" />
           </div>
         )}
@@ -183,18 +183,18 @@ function ImageForm({ origin }: { origin: AdminOrigin }) {
           type="file"
           accept="image/jpeg,image/png,image/webp"
           required
-          className="u-mono text-cream file:mr-3 file:border file:border-[var(--rule-strong)] file:bg-transparent file:px-3 file:py-2 file:text-cream"
+          className="u-mono text-foreground file:mr-3 file:border file:border-input file:bg-transparent file:px-3 file:py-2 file:text-foreground"
         />
         <button
           type="submit"
           disabled={pending}
-          className="u-mono border border-[var(--rule-strong)] px-5 py-2.5 text-cream transition-colors duration-300 hover:border-ochre hover:text-ochre disabled:opacity-50"
+          className="u-mono border border-input px-5 py-2.5 text-foreground transition-colors duration-300 hover:border-accent hover:text-accent disabled:opacity-50"
         >
           {pending ? "Uploading…" : origin.image ? "Replace" : "Upload"}
         </button>
       </div>
       {(state.error || state.message) && (
-        <p role={state.error ? "alert" : "status"} className={`u-mono mt-2 ${state.error ? "text-ochre" : "text-[var(--text-muted)]"}`}>
+        <p role={state.error ? "alert" : "status"} className={`u-mono mt-2 ${state.error ? "text-accent" : "text-muted-foreground"}`}>
           {state.error ?? state.message}
         </p>
       )}
@@ -210,16 +210,16 @@ function DeleteForm({ origin, onDone }: { origin: AdminOrigin; onDone: () => voi
   }, [state, onDone]);
 
   return (
-    <form action={action} className="mt-8 border-t border-[var(--rule)] pt-6">
+    <form action={action} className="mt-8 border-t border-border pt-6">
       <input type="hidden" name="id" value={origin.id} />
       <button
         type="submit"
         disabled={pending}
-        className="u-mono border border-oxblood px-6 py-3 text-ochre transition-colors duration-300 hover:bg-oxblood disabled:opacity-50"
+        className="u-mono border border-destructive px-6 py-3 text-destructive transition-colors duration-300 hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
       >
         {pending ? "Removing…" : "Remove this pin"}
       </button>
-      {state.error && <p role="alert" className="u-mono mt-3 text-ochre">{state.error}</p>}
+      {state.error && <p role="alert" className="u-mono mt-3 text-accent">{state.error}</p>}
     </form>
   );
 }
@@ -242,10 +242,10 @@ function Field({
   span?: boolean;
 }) {
   const cls =
-    "w-full border border-[var(--rule-strong)] bg-ground-2 px-4 py-3 text-cream outline-none transition-colors duration-300 focus:border-ochre";
+    "w-full border border-input bg-muted px-4 py-3 text-foreground outline-none transition-colors duration-300 focus:border-accent";
   return (
     <div className={span ? "sm:col-span-2" : ""}>
-      <label htmlFor={name} className="u-mono mb-2 block text-[var(--text-muted)]">{label}</label>
+      <label htmlFor={name} className="u-mono mb-2 block text-muted-foreground">{label}</label>
       {textarea ? (
         <textarea id={name} name={name} rows={3} defaultValue={defaultValue} placeholder={placeholder} className={cls} />
       ) : (

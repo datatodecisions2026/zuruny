@@ -46,14 +46,14 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
   return (
     <div>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <p className="u-mono text-[var(--text-faint)]">
+        <p className="u-mono text-muted-foreground">
           {products.length} products &middot;{" "}
           {products.filter((p) => p.status === "active").length} published
         </p>
         <button
           type="button"
           onClick={() => setAdding((v) => !v)}
-          className="u-mono border border-[var(--rule-strong)] px-5 py-3 text-cream transition-colors duration-300 hover:border-ochre hover:text-ochre"
+          className="u-mono border border-input px-5 py-3 text-foreground transition-colors duration-300 hover:border-accent hover:text-accent"
         >
           {adding ? "Cancel" : "Add product"}
         </button>
@@ -61,7 +61,7 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
 
       {adding && <AddForm />}
 
-      <ul className="divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
+      <ul className="divide-y divide-border border-y border-border">
         {products.map((product) => (
           <li key={product.handle}>
             <div className="flex flex-wrap items-center gap-4 py-4">
@@ -73,10 +73,10 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
                 aria-expanded={open === product.handle}
                 className="flex-1 text-left"
               >
-                <span className="u-display text-[length:var(--step-1)] text-cream">
+                <span className="u-display text-[length:var(--step-1)] text-foreground">
                   {product.name}
                 </span>
-                <span className="u-mono ml-3 text-[var(--text-faint)]">
+                <span className="u-mono ml-3 text-muted-foreground">
                   /{product.handle}
                 </span>
               </button>
@@ -84,14 +84,14 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
               <span
                 className={`u-mono px-3 py-1 ${
                   product.status === "active"
-                    ? "text-ochre"
-                    : "text-[var(--text-faint)]"
+                    ? "text-accent"
+                    : "text-muted-foreground"
                 }`}
               >
                 {product.status === "active" ? "Published" : "Draft"}
               </span>
 
-              <span className="u-mono w-24 text-right text-cream">
+              <span className="u-mono w-24 text-right text-foreground">
                 {product.priceCents === null
                   ? "—"
                   : formatUSD(product.priceCents)}
@@ -99,7 +99,7 @@ export function AdminProducts({ products }: { products: AdminProduct[] }) {
 
               <span
                 className={`u-mono w-20 text-right ${
-                  product.stock > 0 ? "text-cream" : "text-ochre"
+                  product.stock > 0 ? "text-foreground" : "text-accent"
                 }`}
               >
                 {product.stock > 0 ? `${product.stock} in stock` : "0"}
@@ -125,7 +125,7 @@ function AddForm() {
   return (
     <form
       action={action}
-      className="mb-8 grid gap-5 border border-[var(--rule-strong)] p-6 sm:grid-cols-2"
+      className="mb-8 grid gap-5 border border-input p-6 sm:grid-cols-2"
     >
       <Field name="name" label="Name" required />
       <Select name="kind" label="Kind" options={KINDS} />
@@ -157,11 +157,11 @@ function AddForm() {
         <button
           type="submit"
           disabled={pending}
-          className="u-mono bg-cream px-7 py-4 text-ground transition-colors duration-300 hover:bg-ochre disabled:opacity-50"
+          className="u-mono bg-primary px-7 py-4 text-primary-foreground transition-colors duration-300 hover:opacity-90 disabled:opacity-50"
         >
           {pending ? "Adding…" : "Add as draft"}
         </button>
-        <p className="u-mono mt-3 text-[var(--text-faint)]">
+        <p className="u-mono mt-3 text-muted-foreground">
           New products start as drafts and stay off the shop until published.
         </p>
       </div>
@@ -180,7 +180,7 @@ function EditForm({
   const [delState, delAction, deleting] = useActionState(deleteProduct, EMPTY);
 
   return (
-    <div className="mb-6 border border-[var(--rule)] p-6">
+    <div className="mb-6 border border-border p-6">
       <form action={saveAction} className="grid gap-5 sm:grid-cols-2">
         <input type="hidden" name="handle" value={product.handle} />
         <input type="hidden" name="variant_id" value={product.variantId ?? ""} />
@@ -254,14 +254,14 @@ function EditForm({
           <button
             type="submit"
             disabled={saving}
-            className="u-mono bg-cream px-7 py-4 text-ground transition-colors duration-300 hover:bg-ochre disabled:opacity-50"
+            className="u-mono bg-primary px-7 py-4 text-primary-foreground transition-colors duration-300 hover:opacity-90 disabled:opacity-50"
           >
             {saving ? "Saving…" : "Save"}
           </button>
           <button
             type="button"
             onClick={onDone}
-            className="u-mono px-4 py-4 text-[var(--text-muted)] transition-colors hover:text-cream"
+            className="u-mono px-4 py-4 text-muted-foreground transition-colors hover:text-foreground"
           >
             Close
           </button>
@@ -270,24 +270,24 @@ function EditForm({
 
       <form
         action={delAction}
-        className="mt-8 border-t border-[var(--rule)] pt-6"
+        className="mt-8 border-t border-border pt-6"
       >
         <input type="hidden" name="handle" value={product.handle} />
-        <p className="u-mono mb-3 text-[var(--text-faint)]">
+        <p className="u-mono mb-3 text-muted-foreground">
           Deleting removes the product, its photographs and its spec. This
           cannot be undone &mdash; type{" "}
-          <span className="text-ochre">{product.handle}</span> to confirm.
+          <span className="text-accent">{product.handle}</span> to confirm.
         </p>
         <div className="flex flex-wrap gap-4">
           <input
             name="confirm"
             aria-label={`Type ${product.handle} to confirm deletion`}
-            className="flex-1 border border-[var(--rule-strong)] bg-ground-2 px-4 py-3 text-cream outline-none focus:border-ochre"
+            className="flex-1 border border-input bg-muted px-4 py-3 text-foreground outline-none focus:border-accent"
           />
           <button
             type="submit"
             disabled={deleting}
-            className="u-mono border border-oxblood px-6 py-3 text-ochre transition-colors duration-300 hover:bg-oxblood disabled:opacity-50"
+            className="u-mono border border-destructive px-6 py-3 text-destructive transition-colors duration-300 hover:bg-destructive hover:text-destructive-foreground disabled:opacity-50"
           >
             {deleting ? "Deleting…" : "Delete"}
           </button>
@@ -304,7 +304,7 @@ function Status({ state }: { state: AdminState }) {
     <p
       role={state.error ? "alert" : "status"}
       className={`u-mono sm:col-span-2 ${
-        state.error ? "text-ochre" : "text-[var(--text-muted)]"
+        state.error ? "text-accent" : "text-muted-foreground"
       }`}
     >
       {state.error ?? state.message}
@@ -334,10 +334,10 @@ function Field({
   span?: boolean;
 }) {
   const cls =
-    "w-full border border-[var(--rule-strong)] bg-ground-2 px-4 py-3 text-cream outline-none transition-colors duration-300 focus:border-ochre";
+    "w-full border border-input bg-muted px-4 py-3 text-foreground outline-none transition-colors duration-300 focus:border-accent";
   return (
     <div className={span ? "sm:col-span-2" : ""}>
-      <label htmlFor={name} className="u-mono mb-2 block text-[var(--text-muted)]">
+      <label htmlFor={name} className="u-mono mb-2 block text-muted-foreground">
         {label}
       </label>
       {textarea ? (
@@ -377,17 +377,17 @@ function Select({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="u-mono mb-2 block text-[var(--text-muted)]">
+      <label htmlFor={name} className="u-mono mb-2 block text-muted-foreground">
         {label}
       </label>
       <select
         id={name}
         name={name}
         defaultValue={defaultValue}
-        className="w-full border border-[var(--rule-strong)] bg-ground-2 px-4 py-3 text-cream outline-none focus:border-ochre"
+        className="w-full border border-input bg-muted px-4 py-3 text-foreground outline-none focus:border-accent"
       >
         {options.map(([value, text]) => (
-          <option key={value} value={value} className="bg-ground">
+          <option key={value} value={value} className="bg-card">
             {text}
           </option>
         ))}

@@ -6,8 +6,15 @@ export const dbConfigured = Boolean(process.env.DATABASE_URL);
 
 /* bigint (money in cents, ids) arrives as a string by default. Every value in
    this schema is far below 2^53, so plain numbers are safe and match the types
-   the rest of the code already expects. Timestamps become ISO strings. */
+   the rest of the code already expects. Timestamps become ISO strings.
+
+   sum(bigint_column) upcasts to numeric (a different OID, 1700, not 20) to
+   guard against overflow — pg returns that as a string too, same reasoning
+   applies, same fix. Money is still always integer cents; this only ever
+   sees numeric because it's a sum of one, never a genuinely fractional value,
+   so the same "safely below 2^53" argument holds. */
 types.setTypeParser(20, (v) => Number(v));
+types.setTypeParser(1700, (v) => Number(v));
 types.setTypeParser(1184, (v) => new Date(v).toISOString());
 
 // One pool per process, kept across dev hot reloads.

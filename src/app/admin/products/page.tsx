@@ -1,18 +1,8 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { query } from "@/lib/db";
-import { getDict, isLocale } from "@/lib/i18n";
 import { AdminProducts, type AdminProduct } from "@/components/AdminProducts";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}): Promise<Metadata> {
-  const { locale } = await params;
-  if (!isLocale(locale)) return {};
-  return { title: `${getDict(locale).admin.products} — ${getDict(locale).admin.title}`, robots: { index: false } };
-}
+export const metadata: Metadata = { title: "Products — Admin", robots: { index: false } };
 
 type ProductRow = {
   id: number;
@@ -36,15 +26,7 @@ type ProductRow = {
 };
 
 /** The auth check lives in admin/layout.tsx — this page only runs once it has passed. */
-export default async function AdminProductsPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
-  const t = getDict(locale);
-
+export default async function AdminProductsPage() {
   const products = await query<ProductRow>(
     `select p.id, p.handle, p.name, p.status, p.kind, p.description, p.description_fr,
             p.named_after_from, p.memory, p.pull_quote,
@@ -79,12 +61,12 @@ export default async function AdminProductsPage({
   });
 
   return (
-    <section>
-      <h2 className="u-display mb-6 text-[length:var(--step-2)] text-cream">{t.admin.products}</h2>
+    <div className="space-y-6">
+      <h1 className="admin-display text-3xl text-foreground">Products</h1>
       <AdminProducts products={editable} />
-      <p className="u-mono mt-6 text-[var(--text-faint)]">
+      <p className="admin-mono text-xs text-muted-foreground">
         Prices are the Lebanon base. International is calculated at checkout at 2.5&times;.
       </p>
-    </section>
+    </div>
   );
 }
