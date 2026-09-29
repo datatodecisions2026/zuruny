@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { query } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionAdmin } from "@/lib/admin-auth";
 import { saveUploadedImage } from "@/lib/uploads";
 import { toHandle } from "@/lib/slug";
 
@@ -10,7 +10,7 @@ export type OriginState = { error: string | null; message: string | null };
 
 /** Same boundary as admin-actions.ts and chapter-actions.ts. */
 async function requireAdmin(): Promise<boolean> {
-  return Boolean((await getSessionUser())?.isAdmin);
+  return Boolean(await getSessionAdmin());
 }
 
 function refresh() {

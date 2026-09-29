@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { query, withTx } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionAdmin } from "@/lib/admin-auth";
 import { toHandle } from "@/lib/slug";
 
 export type AdminState = { error: string | null; message: string | null };
@@ -15,7 +15,7 @@ export type AdminState = { error: string | null; message: string | null };
  * it is open to everyone.
  */
 async function requireAdmin(): Promise<boolean> {
-  return Boolean((await getSessionUser())?.isAdmin);
+  return Boolean(await getSessionAdmin());
 }
 
 function refresh() {

@@ -27,6 +27,28 @@ create table if not exists zuruny_sessions (
 create index if not exists zuruny_sessions_user_id_idx on zuruny_sessions (user_id);
 create index if not exists zuruny_sessions_expires_idx on zuruny_sessions (expires_at);
 
+-- The owner's login, kept entirely separate from zuruny_users: a customer
+-- session cookie is never valid here, and this table's rows never appear as
+-- a customer. Seed the first (only) admin with scripts/seed-admin.mjs —
+-- there is no public sign-up for this table.
+create table if not exists zuruny_admins (
+  id            uuid primary key default gen_random_uuid(),
+  email         text not null,
+  password_hash text not null,
+  full_name     text,
+  created_at    timestamptz not null default now()
+);
+create unique index if not exists zuruny_admins_email_key on zuruny_admins (lower(email));
+
+create table if not exists zuruny_admin_sessions (
+  token_hash text primary key,
+  admin_id   uuid not null references zuruny_admins(id) on delete cascade,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists zuruny_admin_sessions_admin_id_idx on zuruny_admin_sessions (admin_id);
+create index if not exists zuruny_admin_sessions_expires_idx on zuruny_admin_sessions (expires_at);
+
 create table if not exists zuruny_products (
   id               bigint generated always as identity primary key,
   handle           text not null unique,

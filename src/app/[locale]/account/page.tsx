@@ -1,13 +1,12 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AuthForms } from "@/components/AuthForms";
 import { SignOutButton } from "@/components/SignOutButton";
 import { getSessionUser } from "@/lib/auth";
 import { getMyOrders } from "@/lib/orders";
 import { dbConfigured } from "@/lib/db";
-import { getDict, isLocale, localePath } from "@/lib/i18n";
+import { getDict, isLocale } from "@/lib/i18n";
 import { formatUSD } from "@/lib/catalog";
 
 export async function generateMetadata({
@@ -102,14 +101,6 @@ export default async function AccountPage({
           <p className="u-mono text-[var(--text-muted)]">
             {t.account.signedInAs(user.email ?? "")}
           </p>
-          {user.isAdmin && (
-            <Link
-              href={localePath(locale, "/admin")}
-              className="u-mono u-underline mt-2 inline-block text-ochre"
-            >
-              {t.nav.admin} &rarr;
-            </Link>
-          )}
         </div>
         <SignOutButton />
       </div>

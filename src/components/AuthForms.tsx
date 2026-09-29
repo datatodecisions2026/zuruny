@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { signIn, signUp, type AuthState } from "@/lib/auth-actions";
 import { usePreferences } from "@/lib/preferences";
+import { AuthField as Field, AuthPasswordField as PasswordField } from "@/components/AuthField";
 
 const EMPTY: AuthState = { error: null, message: null };
 
@@ -58,7 +59,7 @@ export function AuthForms() {
         {mode === "up" && (
           <Field name="full_name" label={t.account.name} type="text" autoComplete="name" />
         )}
-        <Field name="email" label={t.account.email} type="email" autoComplete="email" required />
+        <Field name="email" label={t.account.email} type="email" autoComplete="email" required defaultValue={state.email} />
         <PasswordField
           label={t.account.password}
           autoComplete={mode === "in" ? "current-password" : "new-password"}
@@ -103,70 +104,3 @@ export function AuthForms() {
   );
 }
 
-const inputClass =
-  "w-full border-0 border-b border-[var(--rule-strong)] bg-transparent py-3 text-[length:var(--step-1)] text-cream outline-none focus-visible:outline-none";
-
-/** Label above, a hairline below; the ochre line draws in from the left on focus. */
-function Frame({ id, label, children }: { id: string; label: string; children: React.ReactNode }) {
-  return (
-    <div className="group">
-      <label
-        htmlFor={id}
-        className="u-mono block text-[var(--text-faint)] transition-colors duration-300 group-focus-within:text-ochre"
-      >
-        {label}
-      </label>
-      <div className="relative">
-        {children}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-ochre transition-transform duration-500 ease-[var(--ease-out-soft)] group-focus-within:scale-x-100"
-        />
-      </div>
-    </div>
-  );
-}
-
-function Field({
-  name,
-  label,
-  type,
-  autoComplete,
-  required,
-}: {
-  name: string;
-  label: string;
-  type: string;
-  autoComplete?: string;
-  required?: boolean;
-}) {
-  return (
-    <Frame id={name} label={label}>
-      <input id={name} name={name} type={type} autoComplete={autoComplete} required={required} className={inputClass} />
-    </Frame>
-  );
-}
-
-function PasswordField({ label, autoComplete, show, hide }: { label: string; autoComplete: string; show: string; hide: string }) {
-  const [visible, setVisible] = useState(false);
-  return (
-    <Frame id="password" label={label}>
-      <input
-        id="password"
-        name="password"
-        type={visible ? "text" : "password"}
-        autoComplete={autoComplete}
-        required
-        className={`${inputClass} pr-20`}
-      />
-      <button
-        type="button"
-        onClick={() => setVisible(!visible)}
-        aria-pressed={visible}
-        className="u-mono absolute bottom-0 right-0 min-h-11 px-1 text-[var(--text-faint)] transition-colors hover:text-cream"
-      >
-        {visible ? hide : show}
-      </button>
-    </Frame>
-  );
-}

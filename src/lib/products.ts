@@ -1,7 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { dbConfigured, query } from "@/lib/db";
-import { getSessionUser } from "@/lib/auth";
+import { getSessionAdmin } from "@/lib/admin-auth";
 import { products as seedProducts, type Product, type ProductKind } from "@/lib/catalog";
 
 /**
@@ -102,13 +102,14 @@ export function toProduct(row: Row): Product {
 
 /**
  * Everything the caller is allowed to see: an anonymous visitor gets only
- * `status = 'active'`, an admin gets drafts too.
+ * `status = 'active'`, someone signed into /admin gets drafts too — so the
+ * owner can preview a draft on the live site while working on it there.
  */
 export const getProducts = cache(async (): Promise<Product[]> => {
   if (!dbConfigured) return seedProducts;
 
   try {
-    const isAdmin = (await getSessionUser())?.isAdmin ?? false;
+    const isAdmin = Boolean(await getSessionAdmin());
     const rows = await query<Row>(
       `${SELECT} ${isAdmin ? "" : "where p.status = 'active'"} order by p.position`,
     );
@@ -125,8 +126,17 @@ export const getProducts = cache(async (): Promise<Product[]> => {
   }
 });
 
+/**
+ * What everyone-facing pages (shop, home, a product page) render.
+ *
+ * `getProducts()` above already resolves this correctly per caller — active
+ * only for a visitor, active plus drafts for someone signed into /admin, so
+ * the owner can preview a draft on the real site — so this is a passthrough,
+ * not a second filter. Re-filtering to "active" here would silently hide an
+ * admin's own drafts from their own preview.
+ */
 export const getLiveProducts = cache(async (): Promise<Product[]> => {
-  return (await getProducts()).filter((p) => p.status === "active");
+  return getProducts();
 });
 
 /** The named ones — a person, a memory, a jar. The site's spine. */
