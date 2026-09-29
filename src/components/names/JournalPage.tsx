@@ -12,7 +12,7 @@ export function Emblem() {
   return <span className={styles.emblem} aria-hidden="true" />;
 }
 
-export function Ornament({ variant = "divider" }: { variant?: "divider" | "olive 1" | "olive 2" }) {
+export function Ornament({ variant = "divider" }: { variant?: "divider" | "olive-1" | "olive-2" }) {
   return <Image className={variant === "divider" ? styles.divider : styles.botanical} src={`/names/journal/${variant}.webp`} alt="" width={variant === "divider" ? 734 : 730} height={variant === "divider" ? 273 : 450} sizes="(min-width: 768px) 240px, 180px" />;
 }
 
@@ -75,7 +75,7 @@ export function JournalPage({ chapter, page, number, locale }: {
           </>}
           {page.kind === "reflection" && <>
             <h3 id={heading} className={styles.label}>{copy.archive}</h3>
-            {assets.place || assets.details?.[0] ? <Photo image={(assets.details?.[0] ?? assets.place!)} caption={copy.photo} /> : <Ornament variant={chapter.number % 2 ? "olive 1" : "olive 2"} />}
+            {assets.place || assets.details?.[0] ? <Photo image={(assets.details?.[0] ?? assets.place!)} caption={copy.photo} /> : <Ornament variant={chapter.number % 2 ? "olive-1" : "olive-2"} />}
             {product.pullQuote && <blockquote className={styles.reflectionQuote} lang="en">“{product.pullQuote}”</blockquote>}
           </>}
         </div>

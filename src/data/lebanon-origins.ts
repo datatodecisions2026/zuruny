@@ -96,7 +96,7 @@ export const origins: LebanonOrigin[] = [
     productHandle: "em-ramiz",
     href: "#em-ramiz",
 
-    image: "/names/em-ramiz/em ramiz.webp",
+    image: "/names/em-ramiz/em-ramiz.webp",
 
     note:
       "Aabra lies immediately east of Sidon, on hills overlooking the Mediterranean coast."

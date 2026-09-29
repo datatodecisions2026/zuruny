@@ -41,7 +41,7 @@ export function NamesJournal({ chapters, locale }: { chapters: NameChapter[]; lo
         })}
         <div className={`${styles.spread} ${styles.closingSpread}`} data-spread>
           <section className={styles.leaf} data-leaf data-kind="closing">
-            <div className={styles.leafFront}><div className={styles.closingArt}><Ornament variant="olive 2" /><p className={styles.label}>Zuruny · {copy.eyebrow}</p></div></div>
+            <div className={styles.leafFront}><div className={styles.closingArt}><Ornament variant="olive-2" /><p className={styles.label}>Zuruny · {copy.eyebrow}</p></div></div>
             <div className={styles.leafBack} aria-hidden="true"><Emblem /></div>
           </section>
           <section className={styles.leaf} data-leaf data-kind="closing">

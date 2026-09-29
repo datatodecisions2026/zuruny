@@ -18,7 +18,7 @@ from (values
    'malvina', 'Malvina', '/names/malvina/6bbc5b43-fe66-4742-b166-40d74124dfbd.webp',
    'The South Lebanon origin associated with Malvina.', 3),
   ('aabra', 'Aabra', 'South Governorate', 33.56667, 35.40583, 0.207679, 0.317398,
-   'em-ramiz', 'Em Ramiz', '/names/em-ramiz/em ramiz.webp',
+   'em-ramiz', 'Em Ramiz', '/names/em-ramiz/em-ramiz.webp',
    'Aabra lies immediately east of Sidon, on hills overlooking the Mediterranean coast.', 4),
   ('douma', 'Douma', 'Batroun District, North Lebanon', 34.20457, 35.84073, 0.468533, 0.690399,
    'najibe', 'Najibe', '/names/najibe/najibe.webp',
