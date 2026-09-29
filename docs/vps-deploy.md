@@ -177,10 +177,9 @@ so login does not work over plain HTTP.
 
 - Paystack dashboard → Settings → API Keys & Webhooks → webhook URL:
   `https://zuruny.datatodecisions.org/api/paystack/webhook`
-- **Everyone is priced as International on this subdomain.** The app decides Lebanon vs
-  International from a country header (`cf-ipcountry`, `x-vercel-ip-country` or `x-geo-country`)
-  and plain nginx doesn't send one. Fine for staging. Before going live for Lebanese customers,
-  put Cloudflare (proxied) in front of the real domain.
+- **Lebanon pricing uses the visitor address** when nginx sends no country header.
+  The block above must keep `X-Real-IP $remote_addr`. A country header
+  (`cf-ipcountry`, `x-vercel-ip-country`, `x-geo-country`) still wins when one is present.
 
 ## 10. Verify
 
