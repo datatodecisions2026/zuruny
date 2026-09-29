@@ -4,6 +4,7 @@ import { ShopGrid } from "@/components/ShopGrid";
 import { KineticHeading } from "@/components/KineticHeading";
 import { isBuyable, SHIPS_TO } from "@/lib/catalog";
 import { getLiveProducts } from "@/lib/products";
+import { getOrigins } from "@/lib/origins";
 import { getDict, isLocale } from "@/lib/i18n";
 
 export async function generateMetadata({
@@ -30,7 +31,7 @@ export default async function ShopPage({
   if (!isLocale(locale)) notFound();
 
   const t = getDict(locale);
-  const live = await getLiveProducts();
+  const [live, origins] = await Promise.all([getLiveProducts(), getOrigins()]);
   const inStock = live.filter(isBuyable).length;
 
   return (
@@ -52,7 +53,7 @@ export default async function ShopPage({
         </p>
       </header>
 
-      <ShopGrid products={live} />
+      <ShopGrid products={live} origins={origins} />
     </main>
   );
 }

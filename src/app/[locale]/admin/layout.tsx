@@ -44,6 +44,7 @@ export default async function AdminLayout({
     { href: "/admin", label: t.admin.orders },
     { href: "/admin/products", label: t.admin.products },
     { href: "/admin/names", label: "Names" },
+    { href: "/admin/map", label: "Map" },
   ];
 
   return (

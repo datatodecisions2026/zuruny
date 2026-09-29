@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import Image from "next/image";
 import {
   createChapter,
@@ -83,6 +83,14 @@ export function AdminNames({ chapters, candidates }: { chapters: AdminChapter[];
 function AddForm({ candidates, onDone }: { candidates: Candidate[]; onDone: () => void }) {
   const [state, action, pending] = useActionState(createChapter, EMPTY);
 
+  /* useActionState re-renders with the result once the action resolves, so
+     react to that — not to the click, whose handler still closes over the
+     state from before submission and would close the form on a rejected
+     entry too, hiding the error it just set. */
+  useEffect(() => {
+    if (state.message && !state.error) onDone();
+  }, [state, onDone]);
+
   return (
     <form action={action} className="mb-8 grid gap-5 border border-[var(--rule-strong)] p-6 sm:grid-cols-2">
       <div>
@@ -124,7 +132,6 @@ function AddForm({ candidates, onDone }: { candidates: Candidate[]; onDone: () =
         <button
           type="submit"
           disabled={pending}
-          onClick={() => { if (!state.error) setTimeout(onDone, 50); }}
           className="u-mono bg-cream px-7 py-4 text-ground transition-colors duration-300 hover:bg-ochre disabled:opacity-50"
         >
           {pending ? "Adding…" : "Add to the book"}
@@ -136,6 +143,10 @@ function AddForm({ candidates, onDone }: { candidates: Candidate[]; onDone: () =
 
 function ChapterEditor({ chapter, onDone }: { chapter: AdminChapter; onDone: () => void }) {
   const [delState, delAction, deleting] = useActionState(deleteChapter, EMPTY);
+
+  useEffect(() => {
+    if (delState.message && !delState.error) onDone();
+  }, [delState, onDone]);
 
   return (
     <div className="mb-6 space-y-8 border border-[var(--rule)] p-6">
@@ -153,7 +164,6 @@ function ChapterEditor({ chapter, onDone }: { chapter: AdminChapter; onDone: () 
           <button
             type="submit"
             disabled={deleting}
-            onClick={() => setTimeout(onDone, 50)}
             className="u-mono border border-oxblood px-6 py-3 text-ochre transition-colors duration-300 hover:bg-oxblood disabled:opacity-50"
           >
             {deleting ? "Removing…" : "Remove from the book"}

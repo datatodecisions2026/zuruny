@@ -4,7 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState, type RefObject } from "
 import { Canvas } from "@react-three/fiber";
 import { Html, useGLTF } from "@react-three/drei";
 import { Box3, Mesh, Vector3 } from "three";
-import { origins } from "@/data/lebanon-origins";
+import type { LebanonOrigin } from "@/data/lebanon-origins";
 import type { Locale } from "@/lib/i18n";
 import { findTerrain, placeOrigin, terrainConfig } from "./terrain";
 import { SceneCamera } from "./SceneCamera";
@@ -12,14 +12,14 @@ import { useMediaQuery } from "./useMapEnvironment";
 import { originCopy } from "./copy";
 import styles from "./origins.module.css";
 
-type Props = { selected: string | null; onSelect: (id: string) => void; active: boolean; reset: number; locale: Locale; onReady: () => void; zoom: number; onZoom: (zoom: number) => void };
+type Props = { origins: LebanonOrigin[]; selected: string | null; onSelect: (id: string) => void; active: boolean; reset: number; locale: Locale; onReady: () => void; zoom: number; onZoom: (zoom: number) => void };
 
 function CanvasFallback({ onReady, message }: { onReady: () => void; message: string }) {
   useEffect(onReady, [onReady]);
   return <p role="status" className={styles.fallback}>{message}</p>;
 }
 
-function Relief({ selected, onSelect, active, reset, onReady, mobile, reduced, debugRef, zoom }: Props & {
+function Relief({ origins, selected, onSelect, active, reset, onReady, mobile, reduced, debugRef, zoom }: Props & {
   mobile: boolean; reduced: boolean; debugRef: RefObject<HTMLPreElement | null>; zoom: number;
 }) {
   const variant = mobile ? "mobile" : "desktop";
@@ -38,7 +38,7 @@ function Relief({ selected, onSelect, active, reset, onReady, mobile, reduced, d
     const terrain = findTerrain(scene);
     const markers = origins.map((origin) => ({ origin, ...placeOrigin(terrain, origin) }));
     return { scene, markers, bounds: terrain.geometry.boundingBox! };
-  }, [source, mobile]);
+  }, [source, mobile, origins]);
   useEffect(() => { onReady(); }, [onReady]);
   const selectedPoint = markers.find((marker) => marker.origin.id === selected)?.world;
   const debugInfo = `model: ${variant}\nselected: ${selected ?? "none"}\norientation: ${JSON.stringify(terrainConfig.orientation)}\nlocal axes: X east, -Z north, Y elevation\nbounds: ${bounds.min.toArray().map((n) => n.toFixed(3))} → ${bounds.max.toArray().map((n) => n.toFixed(3))}\n${markers.map((marker) => `${marker.origin.id}: ${marker.local.toArray().map((n) => n.toFixed(3))}`).join("\n")}`;

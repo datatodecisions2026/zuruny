@@ -159,3 +159,25 @@ create table if not exists zuruny_chapter_images (
   position   integer not null default 0
 );
 create index if not exists zuruny_chapter_images_chapter_id_idx on zuruny_chapter_images (chapter_id);
+
+-- Pins on the shop's 3D relief map. map_x/map_y (0-1) are what actually place
+-- a pin on the terrain mesh; lat/lng are shown as text, not used for
+-- placement. A pin may name a draft product (its page just won't link out).
+create table if not exists zuruny_origins (
+  id            bigint generated always as identity primary key,
+  slug          text not null unique,
+  name          text not null,
+  region        text not null default '',
+  lat           double precision,
+  lng           double precision,
+  map_x         double precision not null check (map_x >= 0 and map_x <= 1),
+  map_y         double precision not null check (map_y >= 0 and map_y <= 1),
+  product_id    bigint references zuruny_products(id) on delete set null,
+  -- Shown even if product_id is null or its product is renamed/removed later.
+  product_label text not null,
+  image         text,
+  note          text,
+  position      integer not null default 0,
+  created_at    timestamptz not null default now()
+);
+create index if not exists zuruny_origins_product_id_idx on zuruny_origins (product_id);

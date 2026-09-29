@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Component, type ReactNode, useCallback, useState } from "react";
-import { origins } from "@/data/lebanon-origins";
+import type { LebanonOrigin } from "@/data/lebanon-origins";
 import type { Product } from "@/lib/catalog";
 import { usePreferences } from "@/lib/preferences";
 import { OriginPanel, OriginSummary } from "./OriginPanel";
@@ -19,7 +19,7 @@ class MapBoundary extends Component<{ children: ReactNode; fallback: ReactNode }
   render() { return this.state.failed ? this.props.fallback : this.props.children; }
 }
 
-export function LebanonOrigins({ products, onView }: { products: Product[]; onView: (handle: string) => void }) {
+export function LebanonOrigins({ products, origins, onView }: { products: Product[]; origins: LebanonOrigin[]; onView: (handle: string) => void }) {
   const { locale } = usePreferences();
   const copy = originCopy[locale];
   const [selected, setSelected] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function LebanonOrigins({ products, onView }: { products: Product[]; onVi
       <div ref={mapRef} className={styles.map} data-active={active}>
         <MapBoundary fallback={<p role="status" className={styles.fallback}>{copy.unavailable}</p>}>
           {!ready && <p role="status" className={styles.fallback}>{copy.loading}</p>}
-          {near && <TerrainScene selected={selected} onSelect={setSelected} active={active} reset={reset} locale={locale} onReady={onReady} zoom={zoom} onZoom={setZoom} />}
+          {near && <TerrainScene origins={origins} selected={selected} onSelect={setSelected} active={active} reset={reset} locale={locale} onReady={onReady} zoom={zoom} onZoom={setZoom} />}
         </MapBoundary>
         <div className={styles.overlay} aria-live="polite">
           {origin ? <OriginSummary key={origin.id} origin={origin} product={product} locale={locale} className={styles.panelContent} />
