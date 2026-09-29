@@ -8,6 +8,10 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 .vercel
 
+# Admin-uploaded images, written straight to disk on the VPS at runtime —
+# never checked in, and must survive a `git pull` untouched.
+/public/uploads/
+
 # Secrets. The negation must come after the wildcard, or a later `.env*`
 # rule (vercel link appends one) silently re-ignores the example file.
 .env*

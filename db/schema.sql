@@ -132,3 +132,30 @@ begin
     end if;
   end loop;
 end $$;
+
+-- "The Names" journal. A chapter is a product retold as a page-flip book: a
+-- required dedication image, then optional portrait/place/product photos and
+-- any number of extra detail shots. The story text is product.memory —
+-- already above — a chapter only adds the book-specific images and ordering.
+create table if not exists zuruny_chapters (
+  id          bigint generated always as identity primary key,
+  product_id  bigint not null unique references zuruny_products(id) on delete cascade,
+  slug        text not null unique,
+  -- A chapter may show a product that is still a draft everywhere else — the
+  -- one case the storefront allows (see docs/namesJournal history: Najibe).
+  allow_draft boolean not null default false,
+  position    integer not null default 0,
+  created_at  timestamptz not null default now()
+);
+
+create table if not exists zuruny_chapter_images (
+  id         bigint generated always as identity primary key,
+  chapter_id bigint not null references zuruny_chapters(id) on delete cascade,
+  kind       text not null check (kind in ('dedication', 'product', 'place', 'portrait', 'detail')),
+  src        text not null,
+  width      integer not null,
+  height     integer not null,
+  alt        text not null default '',
+  position   integer not null default 0
+);
+create index if not exists zuruny_chapter_images_chapter_id_idx on zuruny_chapter_images (chapter_id);

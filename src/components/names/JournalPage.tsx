@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { JournalPageData, NameChapter } from "@/data/namesJournal";
+import type { JournalPageData } from "@/data/namesJournal";
+import type { NameChapter } from "@/lib/chapters";
 import { journalCopy } from "@/data/namesJournalCopy";
 import type { ProductImage } from "@/lib/catalog";
 import { descriptionFor, specFor } from "@/lib/catalog.fr";

@@ -16,7 +16,10 @@ import { products as seedProducts, type Product, type ProductKind } from "@/lib/
  * shop grid and a product page hits the database once, not three times.
  */
 
-type Row = {
+export type Row = {
+  // Selected so other queries (chapters.ts) can join on it; toProduct() below
+  // never reads it, since Product itself has no id — the handle is its key.
+  id: number;
   handle: string;
   name: string;
   kind: ProductKind;
@@ -55,15 +58,15 @@ type Row = {
 const agg = (table: string, cols: string, alias: string) =>
   `coalesce((select json_agg(x order by x.position) from (select ${cols} from ${table} c where c.product_id = p.id) x), '[]'::json) as ${alias}`;
 
-const SELECT = `
-  select p.handle, p.name, p.kind, p.status, p.named_after_from, p.description,
+export const SELECT = `
+  select p.id, p.handle, p.name, p.kind, p.status, p.named_after_from, p.description,
          p.description_fr, p.memory, p.pull_quote, p.position,
          ${agg("zuruny_variants", "c.label, c.price_cents, c.stock, c.available, c.position", "zuruny_variants")},
          ${agg("zuruny_product_images", "c.src, c.width, c.height, c.alt, c.position", "zuruny_product_images")},
          ${agg("zuruny_product_spec", "c.label, c.value, c.label_fr, c.value_fr, c.position", "zuruny_product_spec")}
     from zuruny_products p`;
 
-function toProduct(row: Row): Product {
+export function toProduct(row: Row): Product {
   const by = <T extends { position: number }>(a: T, b: T) => a.position - b.position;
 
   return {

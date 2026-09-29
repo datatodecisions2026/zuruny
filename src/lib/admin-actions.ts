@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { query, withTx } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
+import { toHandle } from "@/lib/slug";
 
 export type AdminState = { error: string | null; message: string | null };
 
@@ -21,17 +22,6 @@ function refresh() {
   // Products appear in the header count, the shop, the home page and the
   // product pages, so the whole tree is revalidated rather than one route.
   revalidatePath("/", "layout");
-}
-
-/** Slug from a name, so the owner never has to think about URLs. */
-function toHandle(input: string): string {
-  return input
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
 }
 
 function parsePriceToCents(raw: string): number | null {
@@ -65,8 +55,10 @@ export async function createProduct(
       const {
         rows: [product],
       } = await c.query<{ id: number }>(
-        `insert into zuruny_products (handle, name, kind, status, description, description_fr, position)
-         values ($1, $2, $3, 'draft', $4, $5, 999)
+        `insert into zuruny_products
+           (handle, name, kind, status, description, description_fr,
+            named_after_from, memory, pull_quote, position)
+         values ($1, $2, $3, 'draft', $4, $5, $6, $7, $8, 999)
          returning id`,
         [
           handle,
@@ -74,6 +66,9 @@ export async function createProduct(
           kind,
           String(formData.get("description") ?? "").trim(),
           String(formData.get("description_fr") ?? "").trim() || null,
+          String(formData.get("named_after_from") ?? "").trim() || null,
+          String(formData.get("memory") ?? "").trim() || null,
+          String(formData.get("pull_quote") ?? "").trim() || null,
         ],
       );
       // New products start as drafts. Publishing is a separate, deliberate act.
@@ -120,13 +115,17 @@ export async function updateProduct(
     await withTx(async (c) => {
       await c.query(
         `update zuruny_products
-            set name = $1, status = $2, description = $3, description_fr = $4
-          where id = $5`,
+            set name = $1, status = $2, description = $3, description_fr = $4,
+                named_after_from = $5, memory = $6, pull_quote = $7
+          where id = $8`,
         [
           String(formData.get("name") ?? "").trim() || product.name,
           status === "active" ? "active" : "draft",
           String(formData.get("description") ?? "").trim(),
           String(formData.get("description_fr") ?? "").trim() || null,
+          String(formData.get("named_after_from") ?? "").trim() || null,
+          String(formData.get("memory") ?? "").trim() || null,
+          String(formData.get("pull_quote") ?? "").trim() || null,
           product.id,
         ],
       );
