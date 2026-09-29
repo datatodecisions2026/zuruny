@@ -48,6 +48,10 @@ function newReference(): string {
  *
  * The order is written with the service role precisely so that `authenticated`
  * has no INSERT policy on zuruny_orders — a client cannot write its own totals.
+ *
+ * Inserting the lines reserves stock in the database. Deleting the order
+ * before it is paid gives that stock back; marking it failed does the same.
+ * A second checkout cannot take units the first one is already holding.
  */
 export async function placeOrder(input: {
   lines: BasketLine[];
