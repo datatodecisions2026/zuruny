@@ -27,6 +27,9 @@ const SCENE_START = 0;
 // How far the hero's contents lag the curtain as it lifts (parallax), as a
 // share of the screen height.
 const CURTAIN_LAG = 0.35;
+// The curtain's bottom edge dissolves over this share of the screen height,
+// under a bank of clouds that rides up with it.
+const CURTAIN_FEATHER = 0.22;
 // How far chapter copy drifts across its chapter, as a share of the screen height.
 const DRIFT_SHARE = 0.12;
 
@@ -51,6 +54,7 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
   const navRef = useRef<HTMLElement>(null);
   const studioRef = useRef<HTMLDivElement>(null);
   const endCtaRef = useRef<HTMLDivElement>(null);
+  const cloudEdgeRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
   const invalidateRef = useRef<(() => void) | null>(null);
   const [sceneOn, setSceneOn] = useState(false);
@@ -65,10 +69,17 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       // Its contents lag the curtain, so the tree and cards drift as it rises.
       const inner = heroEl.firstElementChild as HTMLElement | null;
       if (inner) inner.style.transform = `translate3d(0, ${lift * CURTAIN_LAG * 100}%, 0)`;
-      const radius = `${Math.round(lift * 48)}px`;
-      heroEl.style.borderBottomLeftRadius = radius;
-      heroEl.style.borderBottomRightRadius = radius;
-      heroEl.style.boxShadow = lift > 0 ? `0 40px 90px -20px rgba(0,0,0,${0.55 * (1 - lift)})` : "none";
+      // No hard edge: the bottom fades out as it lifts, into the cloud bank.
+      const feather = Math.min(1, lift * 8) * CURTAIN_FEATHER * 100;
+      const mask = feather > 0 ? `linear-gradient(to bottom, #000 ${100 - feather}%, transparent)` : "none";
+      heroEl.style.maskImage = mask;
+      heroEl.style.setProperty("-webkit-mask-image", mask);
+      const clouds = cloudEdgeRef.current;
+      if (clouds) {
+        clouds.style.transform = `translate3d(0, ${-lift * heroEl.offsetHeight}px, 0)`;
+        // In as the lift starts; out before the bank would linger at the top.
+        clouds.style.opacity = String(smoothstep(lift / 0.08) * (1 - smoothstep((lift - 0.7) / 0.3)));
+      }
       const gone = lift >= 1;
       heroEl.style.visibility = gone ? "hidden" : "visible";
       heroEl.toggleAttribute("inert", gone);
@@ -255,10 +266,28 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
 
         <CinematicEndCta locale={locale} containerRef={endCtaRef} />
 
-        {/* The curtain: rounded and shadowed along its bottom edge as it lifts. */}
+        {/* The curtain: its bottom edge dissolves into the cloud bank below as it lifts. */}
         <div ref={heroRef} className="absolute inset-0 z-50 overflow-hidden will-change-transform">
           {hero}
         </div>
+
+        {/* Cloud bank along the curtain's bottom edge; rides up with it
+            (HomeStage moves it), overlapping the fade so no seam shows. Same
+            puff texture as the 3D sky's clouds, three layers at three scales. */}
+        <div
+          ref={cloudEdgeRef}
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-[-10%] top-[calc(100%-34svh)] z-50 h-[60svh] will-change-transform [mask-image:linear-gradient(transparent,#000_30%,#000_65%,transparent)]"
+          style={{
+            opacity: 0,
+            // Puffs stay smaller than the band so none is sliced flat by its
+            // edges; the mask feathers the band's top and bottom.
+            backgroundImage: "url(/textures/cloud.png), url(/textures/cloud.png), url(/textures/cloud.png)",
+            backgroundSize: "clamp(220px, 28vw, 34svh) auto, clamp(170px, 20vw, 26svh) auto, clamp(260px, 34vw, 40svh) auto",
+            backgroundPosition: "0 45%, 37% 28%, 71% 64%",
+            backgroundRepeat: "repeat-x",
+          }}
+        />
       </div>
     </section>
   );
