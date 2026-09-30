@@ -45,6 +45,15 @@ const CLOUD_TEXTURE = "/textures/cloud.png";
 const RETIRED = ["ZU_Cup", "ZU_Decanter", "ZU_Splash", "ZU_Drop", "ZU_CupOil"];
 // Clay jar: a small upright accent at the back of the still life.
 const CLAY = { x: -0.2, z: -0.3 };
+// Portrait still life: laid out in depth rather than across, seen from a
+// little above, so the jars, plate and clay jar all fit a narrow screen with
+// room for the CTA below. Tuned by eye at 390×844 and 360×640.
+const PORTRAIT = {
+  plate: { x: -0.09, z: 0.1 },
+  clay: { x: -0.07, z: -0.28 },
+  camera: new Vector3(-0.02, 0.28, 0.7),
+  look: new Vector3(-0.02, -0.025, -0.02),
+};
 const JAR_MID = 0.045; // half a jar's height, where focus sits
 
 // Vertical half-FOV factor, tan(fov / 2) for the 40° camera.
@@ -155,6 +164,7 @@ function buildRig(table: Object3D, hero: Object3D, companion: Object3D, lite: bo
 
   const plate = get("ZU_Plate");
   const plateBase = (plate.userData.baseX ??= plate.position.x) as number;
+  const plateBaseZ = (plate.userData.baseZ ??= plate.position.z) as number;
 
   const pieces: Record<"olive" | "sprig", { mesh: Mesh; scale: Vector3; rest: Euler }> = {
     olive: { mesh: get("ZU_olive") as Mesh, scale: new Vector3(), rest: new Euler(0, 0, 0) },
@@ -173,7 +183,7 @@ function buildRig(table: Object3D, hero: Object3D, companion: Object3D, lite: bo
     return { ...f, mesh, rest: src.rest, spinAxis: new Vector3(1, i % 3, (i % 2) - 0.5).normalize() };
   });
 
-  return { hero, companion, clay, clayOffset, plate, plateBase, floaters };
+  return { hero, companion, clay, clayOffset, plate, plateBase, plateBaseZ, floaters };
 }
 
 type Rig = ReturnType<typeof buildRig>;
@@ -250,17 +260,24 @@ function Scene({
     place(rig.hero, HERO_KEYS, p, xScale);
     place(rig.companion, COMPANION_KEYS, p, xScale);
 
-    // Portrait: the plate slides further left so it frames the jars instead of covering them.
-    rig.plate.position.x = rig.plateBase * (aspect < 1 ? 1.3 : xScale);
-    rig.clay.position.set(CLAY.x * xScale + rig.clayOffset.x, rig.clayOffset.y, CLAY.z + rig.clayOffset.z);
+    const portrait = aspect < 1;
+    const plate = portrait ? PORTRAIT.plate : { x: rig.plateBase * xScale, z: rig.plateBaseZ };
+    rig.plate.position.set(plate.x, 0, plate.z);
+    const clay = portrait ? PORTRAIT.clay : { x: CLAY.x * xScale, z: CLAY.z };
+    rig.clay.position.set(clay.x + rig.clayOffset.x, rig.clayOffset.y, clay.z + rig.clayOffset.z);
 
     // Camera: portrait screens lift the jars above center so the copy can sit
     // below them; less so for the still life, where only the CTA sits below.
     const [camX, camY, camDist, lookY] = poseAt(CAMERA_KEYS, p);
     const dist = camDist * distMul;
-    const lift = aspect < 1 ? (0.25 - 0.1 * landing) * HALF_FOV * dist : 0;
+    const lift = portrait ? 0.25 * HALF_FOV * dist : 0;
     camera.position.set(camX, camY - lift, dist);
     look.current.set(0, lookY - lift, 0);
+    // Portrait: rise and pull back onto the whole still life as the jars land.
+    if (portrait) {
+      camera.position.lerp(PORTRAIT.camera, landing);
+      look.current.lerp(PORTRAIT.look, landing);
+    }
     camera.lookAt(look.current);
     // Focus on whichever jar is nearer the camera (Georges leads its own
     // chapter); on the table, between the two so both read sharp.

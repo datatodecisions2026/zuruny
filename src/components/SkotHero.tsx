@@ -5,28 +5,34 @@ import { getDict, localePath, type Locale } from "@/lib/i18n";
 
 const rokkitt = Rokkitt({ subsets: ["latin"], display: "swap" });
 
+// Cards wait below and transparent until the root gets data-cards.
+const GLIDE =
+  "opacity-0 translate-y-6 transition-[opacity,translate] duration-[1100ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[cards]/hero:translate-y-0 group-data-[cards]/hero:opacity-100 motion-reduce:transition-none";
+
 const GLASS = {
   backgroundImage:
     "linear-gradient(102.16deg, rgba(255,255,255,0.5) 3.89%, rgba(255,255,255,0.025) 97.64%)",
 };
 
 /* The tree hero, built from Figma GRIGOLETTO "52 — Skot" / Screen 01. A layer
-   of HomeStage: it fills the pinned viewport and dissolves into the 3D pour
-   on scroll. Desktop is the 1440×810 artboard scaled by --u (one design px)
+   of HomeStage: it fills the pinned viewport and lifts off the 3D jar scene
+   like a stage curtain on scroll. The cards glide in once the intro rotation
+   nears its end (SkotHeroMotion sets data-cards on this root). Desktop is the 1440×810 artboard scaled by --u (one design px)
    to fit, anchored bottom-centre; phones get a portrait adaptation of it.
    Splendor Escape (the template's display face) isn't a web font we ship,
    so those runs use the site's display serif. */
 export function SkotHero({ locale }: { locale: Locale }) {
-  const t = getDict(locale).skot;
+  const dict = getDict(locale);
+  const t = dict.skot;
   const about = localePath(locale, "/about");
 
   return (
     <div
-      className={`${rokkitt.className} absolute inset-0 isolate overflow-hidden bg-[#020201] text-white`}
+      className={`${rokkitt.className} group/hero absolute inset-0 isolate overflow-hidden bg-[#020201] text-white`}
       style={{ ["--u" as string]: "min(100vw / 1440, 100svh / 810)" }}
     >
       <h1 className="sr-only">Zuruny</h1>
-      <SkotHeroMotion />
+      <SkotHeroMotion loading={dict.cinematic.loading} />
 
       {/* Phones */}
       <div className="absolute inset-x-0 bottom-0 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-16 md:hidden">
@@ -34,7 +40,7 @@ export function SkotHero({ locale }: { locale: Locale }) {
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-t from-black/70 via-black/35 to-transparent"
         />
-        <div className="flex gap-3">
+        <div className={`flex gap-3 ${GLIDE}`}>
           <Link
             href={about}
             aria-label={t.filmLabel}
@@ -55,7 +61,7 @@ export function SkotHero({ locale }: { locale: Locale }) {
         <Link
           href={about}
           aria-label={t.filmLabel}
-          className="absolute left-[calc(var(--u)*871.76)] top-[calc(var(--u)*610)] h-[calc(var(--u)*165)] w-[calc(var(--u)*160)] rounded-[calc(var(--u)*32)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          className={`absolute left-[calc(var(--u)*871.76)] top-[calc(var(--u)*610)] h-[calc(var(--u)*165)] w-[calc(var(--u)*160)] rounded-[calc(var(--u)*32)] ${GLIDE} focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white`}
         >
           <img
             src="/film/zuruny-about-poster.webp"
@@ -70,7 +76,7 @@ export function SkotHero({ locale }: { locale: Locale }) {
         </Link>
 
         <div
-          className="absolute left-[calc(var(--u)*1050.77)] top-[calc(var(--u)*613)] flex h-[calc(var(--u)*162)] items-center gap-[calc(var(--u)*12)] rounded-[calc(var(--u)*32)] pr-[calc(var(--u)*20)] backdrop-blur-[20px]"
+          className={`absolute left-[calc(var(--u)*1050.77)] top-[calc(var(--u)*613)] flex h-[calc(var(--u)*162)] items-center gap-[calc(var(--u)*12)] rounded-[calc(var(--u)*32)] pr-[calc(var(--u)*20)] backdrop-blur-[20px] ${GLIDE} delay-150`}
           style={GLASS}
         >
           <img

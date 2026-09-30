@@ -35,9 +35,13 @@ export function poseAt(keys: readonly Key[], progress: number): Pose {
   return keys[keys.length - 1].pose;
 }
 
-/** Copy chapters over the sky, as [enter, exit] progress. Copy side alternates. */
+/**
+ * Copy chapters over the sky, as [enter, exit] progress. Copy side alternates.
+ * The first waits for the hero's curtain to be mostly lifted (HomeStage: the
+ * lift ends at 0.18).
+ */
 export const CHAPTERS = [
-  { from: 0.04, to: 0.22, side: "left" },
+  { from: 0.1, to: 0.24, side: "left" },
   { from: 0.26, to: 0.44, side: "right" },
   { from: 0.48, to: 0.64, side: "left" },
   { from: 0.68, to: 0.8, side: "right" },
