@@ -25,6 +25,8 @@ const BRIDGE_SPAN = 150 / STAGE_SVH;
 // first 40svh. Same tree, same backlit light, so the blend reads as the
 // lobby coming to life rather than one scene over another.
 const HERO_FADE = 40 / STAGE_SVH;
+// How far chapter copy drifts across its chapter, as a share of the screen height.
+const DRIFT_SHARE = 0.12;
 // Stills in public/skot/bridge-mobile that stand in for the bridge film on phones.
 const MOBILE_FRAMES = 30;
 
@@ -119,6 +121,12 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       el.style.opacity = String(shown);
       el.style.transform = `translate3d(0, ${(1 - shown) * 28}px, 0)`;
       el.style.visibility = shown > 0 ? "visible" : "hidden";
+      // Parallax: through its chapter the copy drifts up, each line at its own
+      // speed (eyebrow fastest, body slowest, scaling --drift), so the lines
+      // ease apart as they go without ever colliding.
+      const { from, to } = CHAPTERS[i];
+      const local = clamp((progress - from) / (to - from), 0, 1);
+      el.style.setProperty("--drift", `${(0.5 - local) * DRIFT_SHARE * window.innerHeight}px`);
     });
 
     const nav = navRef.current;
@@ -154,7 +162,10 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       pendingSeekRef.current = null;
       if (bridge && next !== null) bridge.currentTime = next;
     };
+    // Catch up with wherever the reader already scrolled once the duration is known.
+    const onMetadata = () => renderProgress(stageRef.current);
     bridge?.addEventListener("seeked", onSeeked);
+    bridge?.addEventListener("loadedmetadata", onMetadata);
     const timeoutId = window.setTimeout(() => {
       if (!window.matchMedia("(min-width: 768px)").matches) {
         // Phones: seeking a video every scroll tick lags, so the turn is 30
@@ -176,6 +187,7 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
     return () => {
       window.clearTimeout(timeoutId);
       bridge?.removeEventListener("seeked", onSeeked);
+      bridge?.removeEventListener("loadedmetadata", onMetadata);
     };
   }, [renderProgress]);
 
@@ -255,16 +267,18 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
             ref={(el) => {
               chapterRefs.current[i] = el;
             }}
-            className={`absolute inset-x-0 bottom-[max(3.5rem,9svh)] z-10 px-[var(--gutter)] text-center will-change-transform md:inset-x-auto md:bottom-auto md:top-1/2 md:max-w-[36ch] md:-translate-y-1/2 md:px-0 md:text-left ${
+            className={`absolute inset-x-0 bottom-[calc(max(5rem,13svh)+env(safe-area-inset-bottom))] z-10 px-[var(--gutter)] text-center will-change-transform md:inset-x-auto md:bottom-auto md:top-1/2 md:max-w-[36ch] md:-translate-y-1/2 md:px-0 md:text-left ${
               CHAPTERS[i].side === "left" ? "md:left-[7vw]" : "md:right-[7vw]"
             }`}
             style={{ opacity: 0, visibility: "hidden" }}
           >
-            <p className="u-mono mb-3 text-raspberry">{chapter.eyebrow}</p>
-            <h2 className="u-display text-[length:var(--step-3)] leading-[0.95] text-oxblood md:text-[length:var(--step-4)]">
+            <p className="u-mono mb-3 text-raspberry [translate:0_calc(var(--drift,0px)*1.25)]">{chapter.eyebrow}</p>
+            <h2 className="u-display text-[length:var(--step-3)] leading-[0.95] text-oxblood [translate:0_var(--drift,0px)] md:text-[length:var(--step-4)]">
               {chapter.title}
             </h2>
-            <p className="u-measure mx-auto mt-4 text-[length:var(--step-0)] text-oxblood/75 md:mx-0">{chapter.body}</p>
+            <p className="u-measure mx-auto mt-3 text-[length:var(--step-0)] text-oxblood/75 [translate:0_calc(var(--drift,0px)*0.75)] md:mx-0 md:mt-4">
+              {chapter.body}
+            </p>
           </div>
         ))}
 
@@ -294,7 +308,10 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
           ref={bridgeRef}
           muted
           playsInline
-          preload="none"
+          // "auto", not "none": without metadata the duration is unknown and
+          // the scrub never seeks, leaving the film frozen on its poster. Phones
+          // never get a src, so this costs them nothing.
+          preload="auto"
           aria-hidden="true"
           className={`${FILM_CLASS} z-40 max-md:hidden`}
         />
