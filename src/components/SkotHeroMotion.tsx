@@ -17,8 +17,10 @@ const CARDS_LEAD_S = 2.5;
 // The rotation ends on a different shot from the idle loop's, so its last
 // moments dissolve into the loop.
 const CROSSFADE_S = 1.2;
-// The rotation plays once per visit; later returns to the home page open on the loop.
-const SEEN_KEY = "zuruny:intro-seen";
+// The rotation plays on every page load (reload, new tab, link from outside);
+// moving around the site and back to home without reloading opens on the
+// loop. Module state lives exactly as long as the loaded page.
+let introPlayed = false;
 
 type Phase = "loading" | "intro" | "idle";
 
@@ -27,14 +29,6 @@ function films() {
   return phone
     ? { rotate: "/hero_scenes/tree_rotate_mobile.mp4", idle: "/hero_scenes/tree_idle_loop_mobile.mp4" }
     : { rotate: "/hero_scenes/tree_rotate.mp4", idle: "/hero_scenes/tree_idle_loop.mp4" };
-}
-
-function introSeen() {
-  try {
-    return sessionStorage.getItem(SEEN_KEY) === "1";
-  } catch {
-    return false;
-  }
 }
 
 /** Resolves once the video can play through, or has failed (so the loader never strands). */
@@ -76,7 +70,7 @@ export function SkotHeroMotion({ loading }: { loading: { eyebrow: string; title:
     const idle = idleRef.current;
     if (!rotate || !idle) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const skipIntro = reduced || introSeen();
+    const skipIntro = reduced || introPlayed;
     const src = films();
     // React doesn't reflect `muted` onto the element, and autoplay policies
     // reject play() on anything not muted.
@@ -130,9 +124,7 @@ export function SkotHeroMotion({ loading }: { loading: { eyebrow: string; title:
     }
     if (phase !== "intro") return;
 
-    try {
-      sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {}
+    introPlayed = true;
     animationRef.current?.play();
     const onTime = () => {
       const left = rotate.duration - rotate.currentTime;
@@ -181,7 +173,7 @@ export function SkotHeroMotion({ loading }: { loading: { eyebrow: string; title:
           if (disposed) return;
           setLottieReady(true);
           // Returning visits and reduced motion show the finished lockup.
-          if (reduced || introSeen()) animation.goToAndStop(animation.totalFrames - 1, true);
+          if (reduced || introPlayed) animation.goToAndStop(animation.totalFrames - 1, true);
         });
       })
       .catch(() => {});
