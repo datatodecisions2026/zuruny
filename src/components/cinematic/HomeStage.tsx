@@ -6,41 +6,41 @@ import { endCtaMotion, clamp } from "@/data/homepageStory";
 import { getDict, type Locale } from "@/lib/i18n";
 import { CinematicEndCta } from "@/components/cinematic/CinematicOverlays";
 import { FILM_CLASS } from "@/components/SkotHeroMotion";
+import { CHAPTERS, LANDED, activeChapter, chapterOpacity, warmth } from "@/data/oilSceneTimeline";
 
-// Real-time 3D pour (jar → drops → cup, falling olives), built from the
-// "Zuruny Final" Blender scene. Browser only.
+// Real-time 3D jars falling through a cream sky onto the "Zuruny Final" still
+// life. Browser only.
 const OilScene = dynamic(() => import("./OilScene"), { ssr: false });
 
 // Let the hero's films get the network first; the model streams in after,
 // long before anyone scrolls to it.
 const SCENE_DELAY_MS = 1500;
+// The stage scrolls 650svh (section height minus the pinned screen).
+const STAGE_SVH = 650;
 // Share of the stage's scroll that turns the tree (1.5–5 s of tree_rotate,
-// scrubbed) before the hard cut to the jar; the pour takes the rest. 150svh
-// of a 450svh scroll.
-const BRIDGE_SPAN = 1 / 3;
+// scrubbed) before the hard cut to the jars; the jar scene takes the rest.
+// Held at 150svh so the tree turns exactly as before.
+const BRIDGE_SPAN = 150 / STAGE_SVH;
 // The hero (idle loop, logo, cards) blends into the turning tree over the
 // first 40svh. Same tree, same backlit light, so the blend reads as the
 // lobby coming to life rather than one scene over another.
-const HERO_FADE = 40 / 450;
+const HERO_FADE = 40 / STAGE_SVH;
+// Stills in public/skot/bridge-mobile that stand in for the bridge film on phones.
+const MOBILE_FRAMES = 30;
 
 function smoothstep(value: number): number {
   const t = clamp(value, 0, 1);
   return t * t * (3 - 2 * t);
 }
 
-/** Eyebrow/title/body fade in early, hold, then clear well before the CTA reveal. */
-function copyMotion(progress: number) {
-  const enter = smoothstep((progress - 0.05) / 0.11);
-  const exit = 1 - smoothstep((progress - 0.42) / 0.13);
-  return { opacity: enter * exit, y: (1 - enter) * 28 };
-}
 
 /**
  * The homepage's opening, all screen sizes, one pinned stage scrubbed by
  * GSAP/ScrollTrigger. The tree hero (`hero`) holds the first screen like a
  * game lobby; scrolling blends it into the bridge film underneath, so the
  * tree starts turning and lights up with the scroll, then a hard cut to the
- * real-time 3D pour. Film never blends over the 3D scene: that muddied both.
+ * real-time 3D jars: four copy chapters in the sky, then the still life.
+ * Film never blends over the 3D scene: that muddied both.
  */
 export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -48,15 +48,22 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
   const pausedFilmsRef = useRef<HTMLVideoElement[]>([]);
   const bridgeRef = useRef<HTMLVideoElement>(null);
   const pendingSeekRef = useRef<number | null>(null);
-  const copyRef = useRef<HTMLDivElement>(null);
+  const chapterRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const navRef = useRef<HTMLElement>(null);
+  const studioRef = useRef<HTMLDivElement>(null);
   const endCtaRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef(0);
+  const stageRef = useRef(0);
+  const frameCanvasRef = useRef<HTMLCanvasElement>(null);
+  const framesRef = useRef<HTMLImageElement[]>([]);
+  const drawnRef = useRef(-1);
   const invalidateRef = useRef<(() => void) | null>(null);
   const [sceneOn, setSceneOn] = useState(false);
   const t = getDict(locale);
-  const copy = t.cinematic.oilDrop;
+  const chapters = t.cinematic.jars;
 
   const renderProgress = useCallback((stage: number) => {
+    stageRef.current = stage;
     const heroEl = heroRef.current;
     if (heroEl) {
       const fade = smoothstep(stage / HERO_FADE);
@@ -71,6 +78,20 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       } else if (!gone && pausedFilmsRef.current.length > 0) {
         pausedFilmsRef.current.forEach((video) => void video.play().catch(() => {}));
         pausedFilmsRef.current = [];
+      }
+    }
+
+    const turning = stage < BRIDGE_SPAN;
+    const canvas = frameCanvasRef.current;
+    if (canvas) {
+      canvas.style.visibility = turning ? "visible" : "hidden";
+      const frames = framesRef.current;
+      const i = Math.round(clamp(stage / BRIDGE_SPAN, 0, 1) * (MOBILE_FRAMES - 1));
+      const img = frames[i]?.complete && frames[i].naturalWidth ? frames[i] : null;
+      // A frame that hasn't arrived yet keeps the previous one on screen.
+      if (turning && img && drawnRef.current !== i) {
+        drawnRef.current = i;
+        canvas.getContext("2d")?.drawImage(img, 0, 0, canvas.width, canvas.height);
       }
     }
 
@@ -92,12 +113,25 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       invalidateRef.current?.();
     }
 
-    const copyEl = copyRef.current;
-    if (copyEl) {
-      const motion = copyMotion(progress);
-      copyEl.style.opacity = String(motion.opacity);
-      copyEl.style.transform = `translate3d(0, ${motion.y}px, 0)`;
+    chapterRefs.current.forEach((el, i) => {
+      if (!el) return;
+      const shown = chapterOpacity(progress, i);
+      el.style.opacity = String(shown);
+      el.style.transform = `translate3d(0, ${(1 - shown) * 28}px, 0)`;
+      el.style.visibility = shown > 0 ? "visible" : "hidden";
+    });
+
+    const nav = navRef.current;
+    if (nav) {
+      const shown = stage >= BRIDGE_SPAN && progress < LANDED - 0.04;
+      nav.style.opacity = shown ? "1" : "0";
+      nav.style.pointerEvents = shown ? "auto" : "none";
+      nav.toggleAttribute("inert", !shown);
+      const active = activeChapter(progress);
+      nav.querySelectorAll("button").forEach((b, i) => b.toggleAttribute("data-active", i === active));
     }
+
+    if (studioRef.current) studioRef.current.style.opacity = String(warmth(progress));
 
     const endCta = endCtaRef.current;
     if (endCta) {
@@ -122,12 +156,20 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
     };
     bridge?.addEventListener("seeked", onSeeked);
     const timeoutId = window.setTimeout(() => {
-      if (bridge) {
+      if (!window.matchMedia("(min-width: 768px)").matches) {
+        // Phones: seeking a video every scroll tick lags, so the turn is 30
+        // stills painted to a canvas instead.
+        framesRef.current = Array.from({ length: MOBILE_FRAMES }, (_, n) => {
+          const img = new Image();
+          img.src = `/skot/bridge-mobile/f${String(n + 1).padStart(2, "0")}.webp`;
+          return img;
+        });
+        framesRef.current[0].onload = () => renderProgress(stageRef.current);
+      } else if (bridge) {
         // Every frame is a keyframe, so seeks land instantly both ways.
-        const cut = window.matchMedia("(min-width: 768px)").matches ? "" : "-mobile";
         bridge.muted = true;
-        bridge.poster = `/skot/tree-bridge${cut}-poster.webp`;
-        bridge.src = `/skot/tree-bridge${cut}.mp4`;
+        bridge.poster = "/skot/tree-bridge-poster.webp";
+        bridge.src = "/skot/tree-bridge.mp4";
       }
       setSceneOn(true);
     }, SCENE_DELAY_MS);
@@ -135,9 +177,19 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       window.clearTimeout(timeoutId);
       bridge?.removeEventListener("seeked", onSeeked);
     };
-  }, []);
+  }, [renderProgress]);
 
   const noop = useCallback(() => {}, []);
+
+  // Nav: scroll to the middle of a chapter.
+  const goTo = useCallback((i: number) => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const { from, to } = CHAPTERS[i];
+    const stage = BRIDGE_SPAN + (1 - BRIDGE_SPAN) * ((from + to) / 2);
+    const top = section.getBoundingClientRect().top + window.scrollY;
+    window.scrollTo({ top: top + stage * (section.offsetHeight - window.innerHeight), behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -176,44 +228,65 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
   return (
     <section
       ref={sectionRef}
-      aria-label={locale === "fr" ? "Zuruny, de l'arbre à la goutte" : "Zuruny, from the tree to the drop"}
-      className="relative isolate block h-[550svh] overflow-clip bg-ground motion-reduce:h-[100svh]"
+      aria-label={locale === "fr" ? "Zuruny, de l'arbre au pot" : "Zuruny, from the tree to the jar"}
+      className="relative isolate block h-[750svh] overflow-clip bg-ground motion-reduce:h-[100svh]"
     >
       <div className="sticky top-0 flex h-[100svh] flex-col items-center justify-center gap-8 overflow-hidden px-[var(--gutter)] md:items-start">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        {/* Cream until the model arrives, so the copy never sits on the dark ground. */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-[#f1ece3]">
           {sceneOn && (
-            <OilScene
-              backdrop={copy.backdrop}
-              progressRef={progressRef}
-              invalidateRef={invalidateRef}
-              onReady={noop}
-              onProgress={noop}
-            />
+            <OilScene progressRef={progressRef} invalidateRef={invalidateRef} onReady={noop} onProgress={noop} />
           )}
         </div>
 
-        {/* Studio vignette over the burgundy sweep, heavier on the left as in
-            oil_drop_new.mp4. */}
+        {/* Studio vignette, only once the sky has warmed to burgundy. */}
         <div
+          ref={studioRef}
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_85%_70%_at_58%_42%,transparent_45%,rgba(24,4,9,0.7)_100%)]"
+          style={{ opacity: 0 }}
         />
 
-        {/* On wide screens the drop rides right of centre (OilScene), so the
-            copy takes the left. */}
-        <div
-          ref={copyRef}
-          className="relative z-10 max-w-[30ch] text-center will-change-transform md:ml-[6vw] md:max-w-[34ch] md:text-left"
-          style={{ opacity: 0 }}
+        {/* Chapters: on wide screens beside the jars, alternating sides; on
+            phones below them (OilScene lifts the jars into the upper half). */}
+        {chapters.map((chapter, i) => (
+          <div
+            key={chapter.title}
+            ref={(el) => {
+              chapterRefs.current[i] = el;
+            }}
+            className={`absolute inset-x-0 bottom-[max(3.5rem,9svh)] z-10 px-[var(--gutter)] text-center will-change-transform md:inset-x-auto md:bottom-auto md:top-1/2 md:max-w-[36ch] md:-translate-y-1/2 md:px-0 md:text-left ${
+              CHAPTERS[i].side === "left" ? "md:left-[7vw]" : "md:right-[7vw]"
+            }`}
+            style={{ opacity: 0, visibility: "hidden" }}
+          >
+            <p className="u-mono mb-3 text-raspberry">{chapter.eyebrow}</p>
+            <h2 className="u-display text-[length:var(--step-3)] leading-[0.95] text-oxblood md:text-[length:var(--step-4)]">
+              {chapter.title}
+            </h2>
+            <p className="u-measure mx-auto mt-4 text-[length:var(--step-0)] text-oxblood/75 md:mx-0">{chapter.body}</p>
+          </div>
+        ))}
+
+        <nav
+          ref={navRef}
+          aria-label={locale === "fr" ? "Chapitres" : "Chapters"}
+          className="absolute inset-x-0 bottom-6 z-20 hidden justify-center gap-8 transition-opacity duration-500 md:flex"
+          style={{ opacity: 0, pointerEvents: "none" }}
+          inert
         >
-          <p className="u-mono mb-3 text-ochre">{copy.eyebrow}</p>
-          <h2 className="u-display text-[length:var(--step-3)] text-cream">
-            {copy.title}
-          </h2>
-          <p className="u-measure mt-3 text-[length:var(--step-0)] text-[var(--text-muted)]">
-            {copy.body}
-          </p>
-        </div>
+          {chapters.map((chapter, i) => (
+            <button
+              key={chapter.title}
+              type="button"
+              onClick={() => goTo(i)}
+              className="group u-mono flex items-center gap-2 text-[length:var(--step--1)] text-oxblood/45 transition-colors duration-300 hover:text-oxblood data-[active]:text-oxblood"
+            >
+              <span className="h-px w-4 bg-current transition-[width] duration-300 group-data-[active]:w-8" />
+              {chapter.title}
+            </button>
+          ))}
+        </nav>
 
         <CinematicEndCta locale={locale} containerRef={endCtaRef} />
 
@@ -221,9 +294,16 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
           ref={bridgeRef}
           muted
           playsInline
-          preload="auto"
+          preload="none"
           aria-hidden="true"
-          className={`${FILM_CLASS} z-40`}
+          className={`${FILM_CLASS} z-40 max-md:hidden`}
+        />
+        <canvas
+          ref={frameCanvasRef}
+          width={540}
+          height={960}
+          aria-hidden="true"
+          className={`${FILM_CLASS} z-40 md:hidden`}
         />
 
         <div ref={heroRef} className="absolute inset-0 z-50">
