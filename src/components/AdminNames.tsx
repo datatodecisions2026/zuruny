@@ -37,16 +37,18 @@ export function AdminNames({ chapters, candidates }: { chapters: AdminChapter[];
           type="button"
           onClick={() => setAdding((v) => !v)}
           disabled={candidates.length === 0}
-          className="u-mono border border-input px-5 py-3 text-foreground transition-colors duration-300 hover:border-accent hover:text-accent disabled:opacity-40"
+          title={candidates.length === 0 ? "Every product with a story already has a chapter" : undefined}
+          className="u-mono border border-input px-5 py-3 text-foreground transition-colors duration-300 hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
         >
           {adding ? "Cancel" : "Add a name"}
         </button>
       </div>
 
-      {candidates.length === 0 && !adding && chapters.length === 0 && (
+      {candidates.length === 0 && !adding && (
         <p className="u-mono text-muted-foreground">
-          No product has a story yet. Add one on the Products page first — the &ldquo;Their
-          story&rdquo; field is what a chapter is built from.
+          {chapters.length === 0
+            ? <>No product has a story yet. Add one on the Products page first — the &ldquo;Their story&rdquo; field is what a chapter is built from.</>
+            : <>Every product with a story is already in the book. Give a new product a story on the Products page to add another name here.</>}
         </p>
       )}
 

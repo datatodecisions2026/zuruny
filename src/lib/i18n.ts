@@ -182,12 +182,28 @@ const en = {
       title: "Where the journey becomes gold",
       body: "Deeper into the foliage, closer to the fruit. Every leaf is a small act of patience.",
     },
-    oilDrop: {
-      eyebrow: "The essence",
-      title: "One drop, the whole story",
-      body: "From the fruit to the glass — each droplet carries the land, the climate, and the craft.",
-      backdrop: "Cold-pressed\nin Lebanon",
-    },
+    jars: [
+      {
+        eyebrow: "Produced in Lebanon",
+        title: "Made slowly, the old way",
+        body: "Fruit, fire and time. Molasses cooked down in the villages it comes from, nothing added and nothing hurried.",
+      },
+      {
+        eyebrow: "Fayez · Rachaya",
+        title: "Grape molasses",
+        body: "Made from carefully selected grapes, crafted by traditional methods to keep their rich flavor and natural sweetness.",
+      },
+      {
+        eyebrow: "Georges · Rihane",
+        title: "Carob molasses",
+        body: "Carob pods turned into a rich, naturally sweet syrup. No added sugar, no preservatives, nothing artificial.",
+      },
+      {
+        eyebrow: "Named for family",
+        title: "Every jar carries a name",
+        body: "Each one carries the name of someone in our family, and their story, in our own words.",
+      },
+    ],
     loading: {
       eyebrow: "Zuruny · Beirut",
       title: "Preparing our stories",
@@ -476,12 +492,28 @@ const fr: typeof en = {
       title: "Là où le voyage devient or",
       body: "Plus profondément dans le feuillage, plus près du fruit. Chaque feuille est un petit acte de patience.",
     },
-    oilDrop: {
-      eyebrow: "L'essence",
-      title: "Une goutte, toute l'histoire",
-      body: "Du fruit au verre — chaque goutte porte la terre, le climat et le savoir-faire.",
-      backdrop: "Pressé à froid\nau Liban",
-    },
+    jars: [
+      {
+        eyebrow: "Produit au Liban",
+        title: "Fait lentement, à l'ancienne",
+        body: "Le fruit, le feu et le temps. Des mélasses réduites dans les villages d'où elles viennent, sans rien ajouter ni rien presser.",
+      },
+      {
+        eyebrow: "Fayez · Rachaya",
+        title: "Mélasse de raisin",
+        body: "Élaborée à partir de raisins soigneusement choisis, selon des méthodes traditionnelles qui préservent leur saveur riche et leur douceur naturelle.",
+      },
+      {
+        eyebrow: "Georges · Rihane",
+        title: "Mélasse de caroube",
+        body: "Des caroubes devenues un sirop riche et naturellement doux. Sans sucre ajouté, sans conservateurs, sans rien d'artificiel.",
+      },
+      {
+        eyebrow: "Au nom de la famille",
+        title: "Chaque pot porte un nom",
+        body: "Chacun porte le nom d'un membre de notre famille, et son histoire, avec nos propres mots.",
+      },
+    ],
     loading: {
       eyebrow: "Zuruny · Beyrouth",
       title: "Nous préparons nos histoires",
