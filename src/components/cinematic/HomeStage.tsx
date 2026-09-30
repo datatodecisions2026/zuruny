@@ -32,10 +32,14 @@ const CURTAIN_LAG = 0.35;
 const CURTAIN_FEATHER = 0.22;
 // At rest the cloud bank sits this much lower (share of the screen height),
 // only its top drifting along the bottom of the idle film, and this opaque.
-// Phones keep it lower: their cards sit at the very bottom and stay readable.
-const CLOUD_REST_DROP = 0.05;
-const CLOUD_REST_DROP_PHONE = 0.13;
-const CLOUD_REST_OPACITY = 0.8;
+// Phones: higher but see-through, so the cards read through it.
+const CLOUD_REST = { drop: 0.15, opacity: 0.8 };
+const CLOUD_REST_PHONE = { drop: 0.1, opacity: 0.4 };
+// Lift at which the bank starts fading out, and over how much lift. Phones
+// fade sooner: their jars sit in the upper half, where the bank would pass
+// over them.
+const CLOUD_FADE = { from: 0.7, span: 0.3 };
+const CLOUD_FADE_PHONE = { from: 0.35, span: 0.3 };
 // The bank's three drifting layers: puff size (one repeat), height in the
 // band, and seconds per repeat (slower for bigger, farther-feeling puffs).
 const CLOUD_LAYERS = [
@@ -95,12 +99,14 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       if (clouds) {
         // At rest only its top drifts along the bottom of the idle film; it
         // settles up to the curtain's edge as the lift starts, then rides up.
-        const drop = window.innerWidth < 768 ? CLOUD_REST_DROP_PHONE : CLOUD_REST_DROP;
-        const rest = (1 - smoothstep(lift / 0.25)) * drop;
+        const phone = window.innerWidth < 768;
+        const atRest = phone ? CLOUD_REST_PHONE : CLOUD_REST;
+        const fade = phone ? CLOUD_FADE_PHONE : CLOUD_FADE;
+        const rest = (1 - smoothstep(lift / 0.25)) * atRest.drop;
         clouds.style.transform = `translate3d(0, ${(rest - lift) * heroEl.offsetHeight}px, 0)`;
-        const thicken = CLOUD_REST_OPACITY + (1 - CLOUD_REST_OPACITY) * smoothstep(lift / 0.1);
+        const thicken = atRest.opacity + (1 - atRest.opacity) * smoothstep(lift / 0.1);
         // Out before the bank would linger at the top.
-        const shown = heroReadyRef.current ? thicken * (1 - smoothstep((lift - 0.7) / 0.3)) : 0;
+        const shown = heroReadyRef.current ? thicken * (1 - smoothstep((lift - fade.from) / fade.span)) : 0;
         clouds.style.opacity = String(shown);
       }
       const gone = lift >= 1;
@@ -303,7 +309,7 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
         <div
           ref={cloudEdgeRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-[calc(100%-34svh)] z-50 h-[60svh] overflow-hidden transition-opacity duration-700 will-change-transform [mask-image:linear-gradient(transparent,#000_30%,#000_65%,transparent)]"
+          className="pointer-events-none absolute inset-x-0 top-[calc(100%-44svh)] z-50 h-[60svh] overflow-hidden transition-opacity duration-700 will-change-transform [mask-image:linear-gradient(transparent,#000_35%,#000_62%,transparent)]"
           style={{ opacity: 0 }}
         >
           {CLOUD_LAYERS.map((layer) => (
