@@ -19,8 +19,6 @@
   --color-foreground: var(--admin-foreground);
   --color-card: var(--admin-card);
   --color-card-foreground: var(--admin-card-foreground);
-  --color-sidebar: var(--admin-sidebar);
-  --color-sidebar-foreground: var(--admin-sidebar-foreground);
   --color-primary: var(--admin-primary);
   --color-primary-foreground: var(--admin-primary-foreground);
   --color-muted: var(--admin-muted);
@@ -55,13 +53,51 @@
   --admin-border: #e2dbcc;
   --admin-input: #e2dbcc;
   --admin-ring: #d7a739;
-  --admin-radius: 0.375rem;
+  --admin-radius: 1.25rem;
+
+  /* Claymorphism: depth from a soft light/dark shadow pair instead of a
+     hairline border — a light highlight (near-white) top-left, a warm dark
+     shadow (the muted-foreground brown, not generic black) bottom-right, so
+     it still reads as "Zuruny" and not a stock UI-kit demo. */
+  --clay-light: rgba(255, 255, 255, 0.75);
+  --clay-dark: rgba(122, 114, 100, 0.28);
 
   background: var(--admin-background);
   color: var(--admin-foreground);
   color-scheme: light;
   min-height: 100svh;
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.clay {
+  box-shadow:
+    -6px -6px 14px var(--clay-light),
+    6px 6px 14px var(--clay-dark);
+}
+
+.clay-sm {
+  box-shadow:
+    -3px -3px 8px var(--clay-light),
+    3px 3px 8px var(--clay-dark);
+}
+
+/* Pressed-in feel on click: the shadow tucks inward instead of puffing out. */
+.clay-pressable {
+  box-shadow:
+    -4px -4px 10px var(--clay-light),
+    4px 4px 10px var(--clay-dark);
+  transition: box-shadow 150ms ease, transform 150ms ease;
+}
+.clay-pressable:hover {
+  box-shadow:
+    -5px -5px 12px var(--clay-light),
+    5px 5px 12px var(--clay-dark);
+}
+.clay-pressable:active {
+  box-shadow:
+    inset -3px -3px 8px var(--clay-light),
+    inset 3px 3px 8px var(--clay-dark);
+  transform: translateY(1px);
 }
 
 /* The two headings that still want the brand's display serif, matching the
@@ -75,4 +111,39 @@
 .admin-mono {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
   letter-spacing: 0.08em;
+}
+
+/* Sidebar + mobile top-bar surface. Plain CSS, not bg-sidebar/text-sidebar-
+   foreground: --color-sidebar never resolved on any descendant (confirmed —
+   the custom property itself computed empty, not just an overridden rule),
+   while --color-card, --color-primary etc. from the exact same @theme block
+   work everywhere else. Narrowed it to these two tokens specifically rather
+   than spend longer on why Tailwind's mapping skipped this one pair. */
+.admin-dark {
+  background: var(--admin-sidebar);
+  color: var(--admin-sidebar-foreground);
+}
+
+/* The sidebar's own responsive positioning. Plain classes, not Tailwind's
+   lg: variants — lg:static generated no rule at all here (confirmed: absent
+   from the stylesheet, not just overridden), same as -translate-x-full
+   below. Everything else on the same element generates fine; explicit CSS
+   for exactly these two beats spending longer chasing why Tailwind's JIT
+   skipped them in this setup. */
+.admin-sidebar {
+  position: fixed;
+  width: 16rem;
+}
+.admin-drawer-closed {
+  transform: translateX(-100%);
+}
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    position: static;
+    z-index: auto;
+    width: 14rem;
+  }
+  .admin-drawer-closed {
+    transform: none;
+  }
 }
