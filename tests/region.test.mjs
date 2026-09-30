@@ -19,6 +19,11 @@ test("a Lebanese allocation is local pricing and a public address elsewhere is n
   assert.equal(isLebanonAddress("8.8.8.8"), false);
   assert.equal(regionFromAddress("8.8.8.8"), "INTL");
   assert.equal(isLebanonAddress("2a00:1580::1"), true);
+  // First number is 128 or higher. These used to miss the country check.
+  assert.equal(isLebanonAddress("213.204.98.1"), true);
+  // Used in Beirut, registered outside Lebanon.
+  assert.equal(isLebanonAddress("187.13.2.24"), true);
+  assert.equal(regionFromAddress("187.13.2.24"), "LB");
 });
 
 test("the address nginx recorded wins over a forged forwarding header", () => {

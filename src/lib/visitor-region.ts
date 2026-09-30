@@ -16,13 +16,13 @@ const v6Prefixes: V6Prefix[] = LEBANON_IPV6.map(compileV6);
 
 export function isLebanonAddress(address: string): boolean {
   const v4 = ipv4ToInt(stripMapped(address));
-  if (v4 !== null) return v4Prefixes.some((p) => (v4 & p.mask) === p.base);
+  if (v4 !== null) return v4Prefixes.some((p) => ((v4 & p.mask) >>> 0) === p.base);
   const v6 = ipv6ToBig(address);
   if (v6 === null) return false;
   return v6Prefixes.some((p) => (v6 & p.mask) === p.base);
 }
 
-/** Lebanon when the address is allocated there. Public addresses elsewhere stay international. */
+/** Lebanon when a country lookup places the address there. Public addresses elsewhere stay international. */
 export function regionFromAddress(address: string): Region {
   return regionFromCountry(isLebanonAddress(address) ? "LB" : "ZZ");
 }
