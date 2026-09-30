@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { endCtaMotion, clamp } from "@/data/homepageStory";
+import { clamp } from "@/data/homepageStory";
 import { getDict, type Locale } from "@/lib/i18n";
 import { CinematicEndCta } from "@/components/cinematic/CinematicOverlays";
 import { FILM_CLASS } from "@/components/SkotHeroMotion";
-import { CHAPTERS, LANDED, activeChapter, chapterOpacity, warmth } from "@/data/oilSceneTimeline";
+import { CHAPTERS, LANDED, activeChapter, chapterOpacity, ctaReveal, warmth } from "@/data/oilSceneTimeline";
 
 // Real-time 3D jars falling through a cream sky onto the "Zuruny Final" still
 // life. Browser only.
@@ -135,10 +135,10 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
 
     const endCta = endCtaRef.current;
     if (endCta) {
-      const motion = endCtaMotion(progress);
-      const interactive = motion.opacity > 0.9;
-      endCta.style.opacity = String(motion.opacity);
-      endCta.style.transform = `translate3d(0, ${motion.y}px, 0)`;
+      const reveal = ctaReveal(progress);
+      const interactive = reveal > 0.9;
+      endCta.style.opacity = String(reveal);
+      endCta.style.transform = `translate3d(0, ${(1 - reveal) * 24}px, 0)`;
       endCta.style.pointerEvents = interactive ? "auto" : "none";
       endCta.toggleAttribute("inert", !interactive);
       endCta.setAttribute("aria-hidden", String(!interactive));
