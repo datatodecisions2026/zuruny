@@ -1,50 +1,56 @@
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
 import test from "node:test";
-import { products } from "../src/lib/catalog.ts";
-import { buildChapters, chapterAssets, journalPages, journalStops, splitMemory } from "../src/data/namesJournal.ts";
+import { journalPages, journalStops, splitMemory } from "../src/data/namesJournal.ts";
 
-const live = products.filter((product) => product.status === "active");
+/**
+ * The chapter list itself — which products become chapters, draft handling,
+ * which images they have — moved to the database (src/lib/chapters.ts,
+ * getChapters()) along with the admin editor that builds it. That's a
+ * server-only async function reading Postgres, so it's covered by the
+ * browser tests run against a real database when it changes, not a unit
+ * test here. What's left in namesJournal.ts, and still worth a fast
+ * DB-free test, is the pure pagination logic.
+ */
 
-test("the requested archive order preserves product kinds and separates family and production origins", () => {
-  const chapters = buildChapters(live, products);
-  assert.deepEqual(chapters.map((c) => c.slug), ["georges", "fayez", "malvina", "em-ramiz", "najibe"]);
-  assert.equal(chapters[0].product.kind, "carob-molasses");
-  assert.equal(chapters[1].product.kind, "grape-molasses");
-  assert.equal(chapters[2].product.namedAfterFrom, "Achrafieh");
-  assert.equal(chapters[2].product.spec[0].value, "Deir Mimas, South Lebanon");
+const chapter = {
+  slug: "test-chapter",
+  number: 1,
+  productHandle: "test-handle",
+  product: {
+    handle: "test-handle",
+    name: "Test",
+    kind: "olive-oil",
+    status: "active",
+    description: "",
+    memory: "A short memory about someone.",
+    pullQuote: "A short memory.",
+    spec: [
+      { label: "Village", value: "Somewhere" },
+      { label: "Harvest", value: "October" },
+    ],
+    images: [],
+    variants: [],
+  },
+  assets: { dedication: { src: "/x.webp", w: 1, h: 1, alt: "" } },
+};
+
+test("pagination retains every word of the memory and every spec fact", () => {
+  const pages = journalPages(chapter);
+  assert.equal(pages.length % 2, 0, "chapters start on a fresh spread");
+  assert.equal(pages[0].kind, "dedication");
+  assert.equal(
+    pages.filter((p) => p.kind === "story").map((p) => p.text).join(" "),
+    chapter.product.memory,
+  );
+  assert.deepEqual(pages.filter((p) => p.kind === "origin").flatMap((p) => p.facts), chapter.product.spec);
+  assert.ok(pages.some((p) => p.kind === "product"));
 });
 
-test("live catalogue edits win; archive-only chapters never gain a purchase link", () => {
-  const edited = live.map((p) => p.name === "Georges" ? { ...p, memory: "A revised memory." } : p);
-  const chapters = buildChapters(edited, products);
-  assert.equal(chapters[0].product.memory, "A revised memory.");
-  assert.equal(chapters[0].productHandle, "georges-br-carob-molasses");
-  assert.equal(chapters.at(-1).productHandle, undefined);
-  assert.equal(products.find((p) => p.handle === "najibe").status, "draft");
-  const withdrawn = buildChapters(live.filter((p) => p.name !== "Georges"), products);
-  assert.equal(withdrawn.some((c) => c.slug === "georges"), false);
-});
-
-test("pagination retains every word of every memory and every origin fact", () => {
-  for (const chapter of buildChapters(live, products)) {
-    const pages = journalPages(chapter);
-    assert.equal(pages.length % 2, 0, "chapters start on a fresh spread");
-    assert.equal(pages.filter((p) => p.kind === "story").map((p) => p.text).join(" "), chapter.product.memory);
-    assert.deepEqual(pages.filter((p) => p.kind === "origin").flatMap((p) => p.facts), chapter.product.spec);
-    assert.equal(pages[0].kind, "dedication");
-    assert.ok(pages.some((p) => p.kind === "product"));
-  }
+test("splitMemory keeps every word and never splits an empty memory", () => {
   assert.deepEqual(splitMemory(""), []);
   assert.deepEqual(splitMemory("One short memory."), ["One short memory."]);
-});
-
-test("every mapped asset exists, including Unicode filenames", () => {
-  for (const assets of Object.values(chapterAssets)) {
-    for (const asset of Object.values(assets).flat()) {
-      if (asset) assert.ok(existsSync(`public${asset.src}`), asset.src);
-    }
-  }
+  const long = Array.from({ length: 200 }, (_, i) => `word${i}`).join(" ");
+  assert.equal(splitMemory(long).join(" "), long);
 });
 
 test("chapter seek positions use the same stops as the reversible master timeline", () => {
