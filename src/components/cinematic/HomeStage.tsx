@@ -30,6 +30,19 @@ const CURTAIN_LAG = 0.35;
 // The curtain's bottom edge dissolves over this share of the screen height,
 // under a bank of clouds that rides up with it.
 const CURTAIN_FEATHER = 0.22;
+// At rest the cloud bank sits this much lower (share of the screen height),
+// only its top drifting along the bottom of the idle film, and this opaque.
+// Phones keep it lower: their cards sit at the very bottom and stay readable.
+const CLOUD_REST_DROP = 0.05;
+const CLOUD_REST_DROP_PHONE = 0.13;
+const CLOUD_REST_OPACITY = 0.8;
+// The bank's three drifting layers: puff size (one repeat), height in the
+// band, and seconds per repeat (slower for bigger, farther-feeling puffs).
+const CLOUD_LAYERS = [
+  { tile: "clamp(260px, 34vw, 40svh)", y: "64%", seconds: 90 },
+  { tile: "clamp(220px, 28vw, 34svh)", y: "45%", seconds: 70 },
+  { tile: "clamp(170px, 20vw, 26svh)", y: "28%", seconds: 55 },
+];
 // How far chapter copy drifts across its chapter, as a share of the screen height.
 const DRIFT_SHARE = 0.12;
 
@@ -55,6 +68,9 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
   const studioRef = useRef<HTMLDivElement>(null);
   const endCtaRef = useRef<HTMLDivElement>(null);
   const cloudEdgeRef = useRef<HTMLDivElement>(null);
+  // Cloud bank stays hidden while the hero's loader holds the screen.
+  const heroReadyRef = useRef(false);
+  const lastStageRef = useRef(0);
   const progressRef = useRef(0);
   const invalidateRef = useRef<(() => void) | null>(null);
   const [sceneOn, setSceneOn] = useState(false);
@@ -62,6 +78,7 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
   const chapters = t.cinematic.jars;
 
   const renderProgress = useCallback((stage: number) => {
+    lastStageRef.current = stage;
     const heroEl = heroRef.current;
     if (heroEl) {
       const lift = smoothstep(stage / CURTAIN_SPAN);
@@ -76,9 +93,15 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       heroEl.style.setProperty("-webkit-mask-image", mask);
       const clouds = cloudEdgeRef.current;
       if (clouds) {
-        clouds.style.transform = `translate3d(0, ${-lift * heroEl.offsetHeight}px, 0)`;
-        // In as the lift starts; out before the bank would linger at the top.
-        clouds.style.opacity = String(smoothstep(lift / 0.08) * (1 - smoothstep((lift - 0.7) / 0.3)));
+        // At rest only its top drifts along the bottom of the idle film; it
+        // settles up to the curtain's edge as the lift starts, then rides up.
+        const drop = window.innerWidth < 768 ? CLOUD_REST_DROP_PHONE : CLOUD_REST_DROP;
+        const rest = (1 - smoothstep(lift / 0.25)) * drop;
+        clouds.style.transform = `translate3d(0, ${(rest - lift) * heroEl.offsetHeight}px, 0)`;
+        const thicken = CLOUD_REST_OPACITY + (1 - CLOUD_REST_OPACITY) * smoothstep(lift / 0.1);
+        // Out before the bank would linger at the top.
+        const shown = heroReadyRef.current ? thicken * (1 - smoothstep((lift - 0.7) / 0.3)) : 0;
+        clouds.style.opacity = String(shown);
       }
       const gone = lift >= 1;
       heroEl.style.visibility = gone ? "hidden" : "visible";
@@ -142,6 +165,8 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     let delay = 0;
     const onReady = () => {
+      heroReadyRef.current = true;
+      renderProgress(lastStageRef.current);
       delay = window.setTimeout(() => setSceneOn(true), SCENE_DELAY_MS);
     };
     window.addEventListener(HERO_READY, onReady, { once: true });
@@ -151,7 +176,7 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
       window.clearTimeout(delay);
       window.clearTimeout(fallback);
     };
-  }, []);
+  }, [renderProgress]);
 
   const noop = useCallback(() => {}, []);
 
@@ -271,23 +296,30 @@ export function HomeStage({ locale, hero }: { locale: Locale; hero: ReactNode })
           {hero}
         </div>
 
-        {/* Cloud bank along the curtain's bottom edge; rides up with it
-            (HomeStage moves it), overlapping the fade so no seam shows. Same
-            puff texture as the 3D sky's clouds, three layers at three scales. */}
+        {/* Cloud bank: at rest its top drifts along the bottom of the idle
+            film; as the curtain lifts it rises onto the curtain's fading edge
+            and rides up with it (HomeStage moves it). Same puff texture as the
+            3D sky's clouds, three layers drifting at their own speeds. */}
         <div
           ref={cloudEdgeRef}
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-[-10%] top-[calc(100%-34svh)] z-50 h-[60svh] will-change-transform [mask-image:linear-gradient(transparent,#000_30%,#000_65%,transparent)]"
-          style={{
-            opacity: 0,
-            // Puffs stay smaller than the band so none is sliced flat by its
-            // edges; the mask feathers the band's top and bottom.
-            backgroundImage: "url(/textures/cloud.png), url(/textures/cloud.png), url(/textures/cloud.png)",
-            backgroundSize: "clamp(220px, 28vw, 34svh) auto, clamp(170px, 20vw, 26svh) auto, clamp(260px, 34vw, 40svh) auto",
-            backgroundPosition: "0 45%, 37% 28%, 71% 64%",
-            backgroundRepeat: "repeat-x",
-          }}
-        />
+          className="pointer-events-none absolute inset-x-0 top-[calc(100%-34svh)] z-50 h-[60svh] overflow-hidden transition-opacity duration-700 will-change-transform [mask-image:linear-gradient(transparent,#000_30%,#000_65%,transparent)]"
+          style={{ opacity: 0 }}
+        >
+          {CLOUD_LAYERS.map((layer) => (
+            <div
+              key={layer.y}
+              className="absolute inset-y-0 left-0 animate-[m-cloud-drift_linear_infinite] bg-[url(/textures/cloud.png)] bg-repeat-x motion-reduce:animate-none"
+              style={{
+                ["--tile" as string]: layer.tile,
+                width: "calc(100% + var(--tile))",
+                backgroundSize: "var(--tile) auto",
+                backgroundPosition: `0 ${layer.y}`,
+                animationDuration: `${layer.seconds}s`,
+              }}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

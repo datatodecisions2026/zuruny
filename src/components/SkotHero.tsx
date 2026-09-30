@@ -35,31 +35,21 @@ export function SkotHero({ locale }: { locale: Locale }) {
       <SkotHeroMotion loading={dict.cinematic.loading} />
 
       {/* Desktop films carry a watermark star at (1160, 600) of 1280 × 720,
-          ~48px across; phones' films have none. An olive branch from the
-          journal sits over it, placed in film pixels through the same
-          cover-fit the film uses (--s: film px → screen), so it tracks the
-          star at any window size. A soft blur underneath catches what the
-          leaves leave uncovered. */}
+          ~48px across; phones' films have none. A heavy blur dissolves it and
+          a quiet Zuruny emblem sits on top, both placed in film pixels through
+          the same cover-fit the film uses (--s: film px → screen), so they
+          track the star at any window size. */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute hidden md:block"
+        className="pointer-events-none absolute hidden size-0 md:block"
         style={{
           ["--s" as string]: "max(100cqw / 1280, 100cqh / 720)",
-          ["--w" as string]: "calc(var(--s) * 240)",
-          width: "var(--w)",
-          left: "calc(50% + var(--s) * 520 - var(--w) * 0.22)",
-          top: "calc(50% + var(--s) * 240 - var(--w) * 0.36)",
+          left: "calc(50% + var(--s) * 520)",
+          top: "calc(50% + var(--s) * 240)",
         }}
       >
-        <div
-          className="absolute size-[calc(var(--s)*80)] rounded-full backdrop-blur-md [mask-image:radial-gradient(closest-side,#000_55%,transparent)]"
-          style={{ left: "calc(var(--w) * 0.22 - var(--s) * 40)", top: "calc(var(--w) * 0.36 - var(--s) * 40)" }}
-        />
-        <img
-          src="/hero_scenes/olive-branch.webp"
-          alt=""
-          className="relative w-full origin-[22%_58%] -rotate-12 drop-shadow-[0_6px_10px_rgba(0,0,0,0.45)]"
-        />
+        <div className="absolute size-[calc(var(--s)*96)] -translate-1/2 rounded-full backdrop-blur-xl [mask-image:radial-gradient(closest-side,#000_45%,transparent)]" />
+        <div className="absolute size-[calc(var(--s)*64)] -translate-1/2 bg-[#e6e2c4]/45 [mask:url(/brand/emblem-mark.png)_center/contain_no-repeat]" />
       </div>
 
       {/* Phones */}

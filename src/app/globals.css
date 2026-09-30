@@ -246,6 +246,14 @@ input:-webkit-autofill {
   }
 }
 
+/* Cloud layers drifting sideways; each shifts by exactly one tile (--tile)
+   so the repeat loops without a seam. */
+@keyframes m-cloud-drift {
+  to {
+    transform: translate3d(calc(-1 * var(--tile)), 0, 0);
+  }
+}
+
 @keyframes m-settle {
   from {
     opacity: 0;
