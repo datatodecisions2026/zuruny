@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { LOCALES, DEFAULT_LOCALE } from "@/lib/i18n";
 import { REGION_HEADER, detectRegion } from "@/lib/region";
+import { regionFromAddress, visitorAddress } from "@/lib/visitor-region";
 
 /**
  * Two jobs, both cheap, both resolved into request headers that the server
  * components read.
  *
- * 1. Region. Resolved from whichever country header the host provides —
- *    Vercel, Cloudflare, or a reverse proxy — and turned into Lebanon or
- *    International here, once. No cookie and no override: pricing is not
- *    something a visitor gets to choose.
+ * 1. Region. A country header wins when the host sends one. Otherwise the
+ *    visitor address nginx recorded is matched against Lebanon's prefixes.
+ *    No cookie and no override: pricing is not something a visitor gets to choose.
  *
  * 2. Locale. Routes live under `app/[locale]/`, but English keeps the bare
  *    URL: `/shop`, not `/en/shop`. A rewrite (not a redirect) maps the bare
@@ -35,15 +35,16 @@ export function proxy(request: NextRequest) {
     LOCALES.find((l) => pathname === `/${l}` || pathname.startsWith(`/${l}/`)) ??
     DEFAULT_LOCALE;
 
-  /* Host-agnostic: Vercel, Cloudflare or a configured reverse proxy. If no
-     host supplies a country at all, every visitor is priced as international
-     — correct as a fallback, but on a Lebanese shop it means nobody local
-     ever sees the local price, so it is worth saying out loud once. */
-  const { region, headerUsed } = detectRegion(request.headers);
-  if (!headerUsed && process.env.NODE_ENV === "production") {
+  /* A country header wins (Vercel, Cloudflare, or nginx GeoIP). Without
+     one, the address nginx recorded is matched against Lebanon's prefixes.
+     Still unknown — no header and no public address — stays international. */
+  const detected = detectRegion(request.headers);
+  const address = detected.headerUsed ? null : visitorAddress(request.headers);
+  const region = address ? regionFromAddress(address) : detected.region;
+  if (!detected.headerUsed && !address && process.env.NODE_ENV === "production") {
     console.warn(
-      "[zuruny] No country header on this request — pricing everyone as INTL. " +
-        "Put Cloudflare in front, or have the proxy set x-geo-country.",
+      "[zuruny] No country header and no public visitor address — pricing as INTL. " +
+        "nginx must set X-Real-IP to $remote_addr.",
     );
   }
 
