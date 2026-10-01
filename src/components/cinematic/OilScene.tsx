@@ -27,10 +27,13 @@ import {
   DROP,
   HERO_KEYS,
   LANDED,
+  jarSpread,
+  keepApart,
   poseAt,
   smoothstep,
+  spreadPose,
   warmth,
-  type Key,
+  type Pose,
 } from "@/data/oilSceneTimeline";
 
 // The table still life from the "Zuruny Final" Blender scene (plate, olives,
@@ -55,11 +58,6 @@ const PORTRAIT = {
   look: new Vector3(-0.02, -0.025, -0.02),
 };
 const JAR_MID = 0.045; // half a jar's height, where focus sits
-// Closest the two jars' centres may come side to side: an 8.6 cm jar's width
-// plus room for their tilts. Only applies while they're at about the same
-// height (a jar's height apart or less).
-const JAR_CLEARANCE = 0.105;
-const JAR_HEIGHT = 0.095;
 
 // Vertical half-FOV factor, tan(fov / 2) for the 40° camera.
 const HALF_FOV = Math.tan((20 * Math.PI) / 180);
@@ -107,10 +105,6 @@ const CLOUDS: { pos: [number, number, number]; s: number; seed: number; lite?: b
   { pos: [0.18, 0.4, -0.1], s: 0.04, seed: 10, lite: true },
   { pos: [0, 0.62, 0.12], s: 0.03, seed: 11 },
 ];
-
-function clamp(v: number, lo: number, hi: number) {
-  return Math.min(hi, Math.max(lo, v));
-}
 
 function glassMaterial(lite: boolean) {
   // Dark amber glass over near-black molasses. Alpha-blended, not
@@ -193,27 +187,8 @@ function buildRig(table: Object3D, hero: Object3D, companion: Object3D, lite: bo
 
 type Rig = ReturnType<typeof buildRig>;
 
-const apart = new Vector3();
-
-/**
- * The keyframed paths don't know about each other, and narrow screens squeeze
- * them closer; if the jars would intersect, slide the companion straight out
- * from the hero (side to side) to the clearance. The hero keeps its framing.
- */
-function keepApart(hero: Object3D, companion: Object3D) {
-  if (Math.abs(companion.position.y - hero.position.y) > JAR_HEIGHT) return;
-  apart.subVectors(companion.position, hero.position).setY(0);
-  const gap = apart.length();
-  if (gap >= JAR_CLEARANCE) return;
-  // Exactly stacked: push along x, toward the side the companion favours.
-  if (gap < 1e-6) apart.set(1, 0, 0);
-  apart.setLength(JAR_CLEARANCE - gap);
-  companion.position.add(apart);
-}
-
-function place(obj: Object3D, keys: readonly Key[], p: number, xScale: number) {
-  const [x, y, z, rx, ry, rz] = poseAt(keys, p);
-  obj.position.set(x * xScale, y, z);
+function setPose(obj: Object3D, [x, y, z, rx, ry, rz]: Pose) {
+  obj.position.set(x, y, z);
   obj.rotation.set(rx, ry, rz);
 }
 
@@ -259,11 +234,8 @@ function Scene({
     const p = progressRef.current ?? 0;
     const aspect = size.width / size.height;
     const distMul = Math.max(1, MIN_ASPECT / aspect);
-    // Narrow screens pull the jars toward the middle; the still life gets a
-    // little more room than the sky so the plate and clay jar stay in frame.
     const landing = smoothstep((p - DROP) / (LANDED - DROP));
-    const skySpread = clamp(aspect / 1.5, 0.3, 1);
-    const xScale = skySpread + (clamp(aspect / 1.5, 0.55, 1) - skySpread) * landing;
+    const xScale = jarSpread(aspect, p);
 
     // Sky → studio.
     const w = warmth(p);
@@ -280,9 +252,11 @@ function Scene({
       if (mesh) (mesh.material as Material).opacity = 1 - w;
     }
 
-    place(rig.hero, HERO_KEYS, p, xScale);
-    place(rig.companion, COMPANION_KEYS, p, xScale);
-    keepApart(rig.hero, rig.companion);
+    // The companion steps aside whenever the paths would put one jar through
+    // the other (tests/jarsApart.test.mjs sweeps every scroll position).
+    const heroPose = spreadPose(poseAt(HERO_KEYS, p), xScale);
+    setPose(rig.hero, heroPose);
+    setPose(rig.companion, keepApart(heroPose, spreadPose(poseAt(COMPANION_KEYS, p), xScale)));
 
     const portrait = aspect < 1;
     const plate = portrait ? PORTRAIT.plate : { x: rig.plateBase * xScale, z: rig.plateBaseZ };
