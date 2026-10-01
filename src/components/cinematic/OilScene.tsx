@@ -55,6 +55,11 @@ const PORTRAIT = {
   look: new Vector3(-0.02, -0.025, -0.02),
 };
 const JAR_MID = 0.045; // half a jar's height, where focus sits
+// Closest the two jars' centres may come side to side: an 8.6 cm jar's width
+// plus room for their tilts. Only applies while they're at about the same
+// height (a jar's height apart or less).
+const JAR_CLEARANCE = 0.105;
+const JAR_HEIGHT = 0.095;
 
 // Vertical half-FOV factor, tan(fov / 2) for the 40° camera.
 const HALF_FOV = Math.tan((20 * Math.PI) / 180);
@@ -188,6 +193,24 @@ function buildRig(table: Object3D, hero: Object3D, companion: Object3D, lite: bo
 
 type Rig = ReturnType<typeof buildRig>;
 
+const apart = new Vector3();
+
+/**
+ * The keyframed paths don't know about each other, and narrow screens squeeze
+ * them closer; if the jars would intersect, slide the companion straight out
+ * from the hero (side to side) to the clearance. The hero keeps its framing.
+ */
+function keepApart(hero: Object3D, companion: Object3D) {
+  if (Math.abs(companion.position.y - hero.position.y) > JAR_HEIGHT) return;
+  apart.subVectors(companion.position, hero.position).setY(0);
+  const gap = apart.length();
+  if (gap >= JAR_CLEARANCE) return;
+  // Exactly stacked: push along x, toward the side the companion favours.
+  if (gap < 1e-6) apart.set(1, 0, 0);
+  apart.setLength(JAR_CLEARANCE - gap);
+  companion.position.add(apart);
+}
+
 function place(obj: Object3D, keys: readonly Key[], p: number, xScale: number) {
   const [x, y, z, rx, ry, rz] = poseAt(keys, p);
   obj.position.set(x * xScale, y, z);
@@ -259,6 +282,7 @@ function Scene({
 
     place(rig.hero, HERO_KEYS, p, xScale);
     place(rig.companion, COMPANION_KEYS, p, xScale);
+    keepApart(rig.hero, rig.companion);
 
     const portrait = aspect < 1;
     const plate = portrait ? PORTRAIT.plate : { x: rig.plateBase * xScale, z: rig.plateBaseZ };
